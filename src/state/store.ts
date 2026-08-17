@@ -5,7 +5,7 @@ import { MAX_TIME_MS, MIN_TIME_MS, type EclipseType } from "../astro/types";
 export const SPEEDS = [1, 60, 600, 3600, 21600, 86400] as const;
 export type Speed = (typeof SPEEDS)[number];
 
-export type CameraPreset = "earth" | "moon" | "sun";
+export type CameraPreset = "eclipse" | "earth" | "moon" | "sun";
 
 interface FineWindow {
   startMs: number;
@@ -34,6 +34,8 @@ interface EclipseStore {
   catalogOpen: boolean;
   /** Timezone used for every human-facing time (input included). */
   timeDisplay: "local" | "utc";
+  /** True once the Suspense boundary (textures) has resolved. */
+  sceneReady: boolean;
 
   setTime(ms: number): void;
   play(): void;
@@ -48,6 +50,7 @@ interface EclipseStore {
   setShowCities(on: boolean): void;
   setCatalogOpen(open: boolean): void;
   setTimeDisplay(mode: "local" | "utc"): void;
+  setSceneReady(): void;
 }
 
 const clampTime = (ms: number) => Math.min(MAX_TIME_MS, Math.max(MIN_TIME_MS, ms));
@@ -80,6 +83,7 @@ export const useEclipseStore = create<EclipseStore>((set, get) => ({
   showCities: false,
   catalogOpen: false,
   timeDisplay: "local",
+  sceneReady: false,
 
   setTime: (ms) =>
     set((s) => ({
@@ -139,6 +143,7 @@ export const useEclipseStore = create<EclipseStore>((set, get) => ({
   setShowCities: (showCities) => set({ showCities }),
   setCatalogOpen: (catalogOpen) => set({ catalogOpen }),
   setTimeDisplay: (timeDisplay) => set({ timeDisplay }),
+  setSceneReady: () => set({ sceneReady: true }),
 }));
 
 /** Current sim time — for use outside React render (useFrame, event handlers). */

@@ -91,13 +91,20 @@
   border-color: rgba(110, 168, 255, 0.35);
 }
 
+.btn:disabled {
+  opacity: 0.35;
+  pointer-events: none;
+}
+
 .btn--icon {
   padding: 6px 10px;
 }
 
 .btn--play {
-  font-size: var(--fs-l);
-  padding: 4px 14px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 8px 12px;
   color: var(--text-1);
 }
 
@@ -567,15 +574,16 @@
     flex-direction: column-reverse;
   }
 
-  /* Compact one-line view bar: Earth | Moon | Sun ‖ Lines | Cities | ? */
+  /* One-line view bar: Earth | Moon | Sun ‖ Lines | Cities | ? — same
+     button scale as the eclipse-nav row for comfortable touch targets. */
   .hud__top-right {
     gap: var(--sp-1);
     padding: 6px;
   }
 
   .hud__top-right .btn {
-    padding: 5px 8px;
-    font-size: var(--fs-xs);
+    padding: 6px 10px;
+    font-size: var(--fs-s);
   }
 
   .hud__top-right .hud__divider {
@@ -598,6 +606,41 @@
 
   .slider-label {
     display: none;
+  }
+
+  /* Bigger touch target for scrubbing. */
+  .slider {
+    height: 34px;
+  }
+
+  .slider::-webkit-slider-runnable-track {
+    height: 6px;
+    border-radius: 3px;
+  }
+
+  .slider::-webkit-slider-thumb {
+    width: 20px;
+    height: 20px;
+    margin-top: -7px;
+  }
+
+  .slider::-moz-range-track {
+    height: 6px;
+  }
+
+  .slider::-moz-range-thumb {
+    width: 18px;
+    height: 18px;
+  }
+
+  .fine-mark {
+    top: 5px;
+    height: 9px;
+  }
+
+  .fine-mark--major {
+    top: 4px;
+    height: 11px;
   }
 
   .dock {

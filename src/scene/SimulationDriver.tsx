@@ -1,14 +1,37 @@
 import { useFrame, useThree } from "@react-three/fiber";
 import type CameraControls from "camera-controls";
 import { useEffect, useRef } from "react";
-import { MathUtils, Vector3 } from "three";
+import { MathUtils, Quaternion, Vector3 } from "three";
+import { activeEclipse } from "../astro/catalog";
 import { computeGeoState } from "../astro/ephemeris";
+import { R_EARTH_KM, type GeoState } from "../astro/types";
 import { getSimTimeMs, useEclipseStore } from "../state/store";
 import { CAMERA_WIDE, MOON_DISPLAY_DIST, SUN_DISPLAY_DIST } from "./scale";
 import { sceneRefs } from "./sceneRefs";
 
 const _dir = new Vector3();
 const _target = new Vector3();
+const _axis = new Vector3();
+const _prevLock = new Vector3(); // zero-length = lock not engaged
+const _lockQ = new Quaternion();
+const _camPos = new Vector3();
+
+/**
+ * Where a solar eclipse is "happening" on Earth right now: the unit direction
+ * of the shadow-axis intersection with the surface, or — while the axis
+ * misses Earth (partial phases / partial-only eclipses) — the surface point
+ * closest to the axis, which is where coverage peaks.
+ */
+function shadowLockDir(gs: GeoState, out: Vector3): Vector3 {
+  _axis.copy(gs.moonKm).sub(gs.sunKm).normalize();
+  const b = gs.moonKm.dot(_axis);
+  const disc = b * b - (gs.moonKm.lengthSq() - R_EARTH_KM * R_EARTH_KM);
+  if (disc >= 0) {
+    const s = -b - Math.sqrt(disc);
+    if (s > 0) return out.copy(gs.moonKm).addScaledVector(_axis, s).normalize();
+  }
+  return out.copy(gs.moonKm).addScaledVector(_axis, -b).normalize();
+}
 
 /**
  * The per-frame heartbeat: derives sim time, runs the ephemeris, and writes
@@ -35,6 +58,19 @@ export function SimulationDriver() {
         if (!presetClicked && !(eclipseChanged && state.cameraPreset !== "earth")) return;
         if (state.cameraPreset === "earth") {
           c.setLookAt(...CAMERA_WIDE, 0, 0, 0, true);
+        } else if (state.cameraPreset === "eclipse") {
+          // Lock on the ongoing eclipse: hover over the shadow's maximum
+          // point for solar; the Moon's near side for lunar.
+          const t = getSimTimeMs();
+          const gs = computeGeoState(t);
+          const e = activeEclipse(t, state.selectedEclipseId);
+          if (e?.type === "lunar") {
+            _dir.copy(gs.moonKm).normalize().multiplyScalar(MOON_DISPLAY_DIST);
+            c.setLookAt(_dir.x * 0.55, _dir.y * 0.55 + 1.4, _dir.z * 0.55, _dir.x, _dir.y, _dir.z, true);
+          } else {
+            shadowLockDir(gs, _dir);
+            c.setLookAt(_dir.x * 2.6, _dir.y * 2.6, _dir.z * 2.6, _dir.x, _dir.y, _dir.z, true);
+          }
         } else if (state.cameraPreset === "moon") {
           // Between Earth and Moon, looking at the Moon's near side — during
           // a lunar eclipse that's the face that turns red (the far side is
@@ -86,7 +122,35 @@ export function SimulationDriver() {
     // an interrupted preset flight can never leave the camera orbiting the
     // wrong body.
     const c = controlsRef.current;
-    if (c && state.cameraPreset === "moon" && moonGroup) {
+    if (state.cameraPreset !== "eclipse") _prevLock.set(0, 0, 0);
+    if (c && state.cameraPreset === "eclipse") {
+      const e = activeEclipse(getSimTimeMs(), state.selectedEclipseId);
+      if (!e) {
+        // The eclipse window ended — pull back to the Earth view.
+        _prevLock.set(0, 0, 0);
+        state.setCameraPreset("earth");
+      } else if (e.type === "lunar" && moonGroup) {
+        _prevLock.set(0, 0, 0);
+        c.setTarget(moonGroup.position.x, moonGroup.position.y, moonGroup.position.z, false);
+      } else {
+        // Follow the sweeping shadow: rotate the camera around Earth by the
+        // same rotation the shadow point makes each frame, so the "hovering
+        // above the eclipse" relation survives the sweep (and the user's own
+        // orbiting is preserved, just carried along). While the controls are
+        // mid-flight or being dragged, follow with the target only so we
+        // don't fight their damping; the threshold is ~4.5e-6 rad — far
+        // below a pixel, so slow sweeps stay smooth.
+        shadowLockDir(gs, _dir);
+        if (!c.active && _prevLock.lengthSq() > 0 && _prevLock.dot(_dir) < 1 - 1e-11) {
+          _lockQ.setFromUnitVectors(_prevLock, _dir);
+          _camPos.copy(c.camera.position).applyQuaternion(_lockQ);
+          c.setLookAt(_camPos.x, _camPos.y, _camPos.z, _dir.x, _dir.y, _dir.z, false);
+        } else {
+          c.setTarget(_dir.x, _dir.y, _dir.z, false);
+        }
+        _prevLock.copy(_dir);
+      }
+    } else if (c && state.cameraPreset === "moon" && moonGroup) {
       c.setTarget(moonGroup.position.x, moonGroup.position.y, moonGroup.position.z, false);
     } else if (c && state.cameraPreset === "sun" && sunMesh) {
       c.setTarget(sunMesh.position.x, sunMesh.position.y, sunMesh.position.z, false);
@@ -95,12 +159,18 @@ export function SimulationDriver() {
     }
 
     // Altitude-proportional controls: dolly steps are multiplicative on the
-    // distance to the target's CENTER, so near the surface a single wheel
-    // tick would eat most of the remaining altitude — and a small drag would
-    // fling the view across continents. Scale both with proximity.
+    // distance to the target, so near the surface a single wheel tick would
+    // eat most of the remaining altitude — and a small drag would fling the
+    // view across continents. Scale both with altitude above the surface.
+    // The eclipse lock targets a point ON the surface (distance-to-target IS
+    // the altitude), so it also gets a lower minDistance for the same
+    // closest approach as the Earth view (~0.3 above ground).
     if (c) {
       const d = c.camera.position.distanceTo(c.getTarget(_target));
-      const proximity = MathUtils.clamp((d - 1) / d, 0.07, 1.0);
+      const surfaceTarget = state.cameraPreset === "eclipse";
+      c.minDistance = surfaceTarget ? 0.3 : 1.3;
+      const altitude = surfaceTarget ? d : d - 1;
+      const proximity = MathUtils.clamp(altitude / (altitude + 1), 0.07, 1.0);
       c.dollySpeed = proximity;
       c.azimuthRotateSpeed = proximity;
       c.polarRotateSpeed = proximity;

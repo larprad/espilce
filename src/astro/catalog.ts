@@ -44,3 +44,21 @@ export function nearestEclipse(t: number): EclipseEvent {
   if (!prev) return next;
   return next.peakMs - t < t - prev.peakMs ? next : prev;
 }
+
+/**
+ * The eclipse "happening" around time t — the selected one if t falls inside
+ * its event window, else the nearest one if inside its window, else null.
+ * Windows match the fine-slider spans (solar ±4 h, lunar ≥ ±6 h).
+ */
+export function activeEclipse(t: number, selectedId?: string | null): EclipseEvent | null {
+  const candidates = [selectedId ? byId.get(selectedId) : undefined, nearestEclipse(t)];
+  for (const e of candidates) {
+    if (!e) continue;
+    const halfMs =
+      e.type === "solar"
+        ? 4 * 3600_000
+        : Math.max(6 * 3600_000, 2 * (e.sdPenumMin ?? 0) * 60_000);
+    if (Math.abs(t - e.peakMs) <= halfMs) return e;
+  }
+  return null;
+}

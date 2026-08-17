@@ -13,6 +13,20 @@ const SPEED_LABELS: Record<Speed, string> = {
   86400: "1 d/s",
 };
 
+/* Inline SVG transport icons — text glyphs like ⏸ render as colored emoji
+   on mobile browsers, so they can't be styled consistently. */
+const PlayIcon = () => (
+  <svg width="14" height="14" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true">
+    <path d="M4.5 2.2 13.5 8l-9 5.8z" />
+  </svg>
+);
+const PauseIcon = () => (
+  <svg width="14" height="14" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true">
+    <rect x="3" y="2.2" width="3.4" height="11.6" rx="1" />
+    <rect x="9.6" y="2.2" width="3.4" height="11.6" rx="1" />
+  </svg>
+);
+
 /** Bottom dock: transport, speed, eclipse jumps, and the two sliders. */
 export function TimeControls() {
   const timeMs = useSimTime();
@@ -31,7 +45,7 @@ export function TimeControls() {
           onClick={togglePlay}
           title={playing ? "Pause (space)" : "Play (space)"}
         >
-          {playing ? "⏸" : "▶"}
+          {playing ? <PauseIcon /> : <PlayIcon />}
         </button>
 
         <input

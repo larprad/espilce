@@ -1,5 +1,7 @@
 import { useEffect, useState } from "react";
+import { activeEclipse } from "../astro/catalog";
 import { type CameraPreset, useEclipseStore } from "../state/store";
+import { useSimTime } from "../state/useSimTime";
 import { CatalogPanel } from "./CatalogPanel";
 import { EclipseStatus } from "./EclipseStatus";
 import { TimeControls } from "./TimeControls";
@@ -9,6 +11,33 @@ const PRESETS: Array<[CameraPreset, string, string]> = [
   ["moon", "Moon", "Follow the Moon"],
   ["sun", "Sun", "Look at the Sun — during a solar eclipse the Moon crosses it"],
 ];
+
+/**
+ * Isolated so its 8 Hz useSimTime tick re-renders only this button — putting
+ * it in HUD made the whole tree (incl. the 680-row catalog) reconcile during
+ * playback, which showed up as a periodic frame hitch.
+ */
+function EclipseLockButton() {
+  const cameraPreset = useEclipseStore((s) => s.cameraPreset);
+  const selectedEclipseId = useEclipseStore((s) => s.selectedEclipseId);
+  const setCameraPreset = useEclipseStore((s) => s.setCameraPreset);
+  const timeMs = useSimTime();
+  const lockable = activeEclipse(timeMs, selectedEclipseId) !== null;
+  return (
+    <button
+      className={`btn ${cameraPreset === "eclipse" ? "is-active" : ""}`}
+      disabled={!lockable}
+      onClick={() => setCameraPreset("eclipse")}
+      title={
+        lockable
+          ? "Lock the camera on the ongoing eclipse"
+          : "No eclipse in progress at the current time"
+      }
+    >
+      Eclipse
+    </button>
+  );
+}
 
 export function HUD() {
   const cameraPreset = useEclipseStore((s) => s.cameraPreset);
@@ -68,6 +97,7 @@ export function HUD() {
       <div className="hud__top-right-wrap">
         <div className="hud__top-right panel">
         <div className="preset-group" role="group" aria-label="Camera">
+          <EclipseLockButton />
           {PRESETS.map(([id, label, hint]) => (
             <button
               key={id}

@@ -61,12 +61,15 @@ const fragment = /* glsl */ `
     // totality/annularity boundary). Cool-to-hot ramp: deeper eclipse,
     // warmer line.
     if (uContours > 0.5) {
+      // Constants are ACES-inverse-compensated so the on-screen colors match
+      // the legend's sRGB swatches (#6ea8ff / #80e0d1 / #ffb347 / #ff5738)
+      // after the composer's tone mapping.
       vec3 lineColor = vec3(0.0);
       float lineAlpha = 0.0;
-      vec3 C25 = vec3(0.43, 0.66, 1.00);   // blue
-      vec3 C50 = vec3(0.50, 0.88, 0.82);   // teal
-      vec3 C75 = vec3(1.00, 0.70, 0.28);   // amber
-      vec3 C100 = vec3(1.00, 0.34, 0.22);  // red — totality edge
+      vec3 C25 = vec3(0.0, 0.296, 2.5);      // blue
+      vec3 C50 = vec3(0.0, 0.902, 0.626);    // teal
+      vec3 C75 = vec3(1.67, 0.303, 0.014);   // amber
+      vec3 C100 = vec3(1.167, 0.053, 0.03);  // red — totality edge
 
       float l25 = lineAt(coverage, 0.25);
       float l50 = lineAt(coverage, 0.50);
@@ -76,7 +79,7 @@ const fragment = /* glsl */ `
       // so a slightly lower threshold tracks the true totality edge best.
       float l100 = lineAt(coverage, 0.999);
       lineColor = C25 * l25 + C50 * l50 + C75 * l75 + C100 * l100;
-      lineAlpha = max(max(0.55 * l25, 0.65 * l50), max(0.75 * l75, 0.95 * l100));
+      lineAlpha = max(max(0.9 * l25, 0.9 * l50), max(0.95 * l75, l100));
 
       // Clip past the sunset/sunrise line: alignment persists geometrically
       // on the night side (the shadow axis exits Earth there), but no one

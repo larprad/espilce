@@ -1,12 +1,20 @@
 import { CameraControls, Stars } from "@react-three/drei";
 import { Canvas } from "@react-three/fiber";
-import { Suspense } from "react";
+import { Suspense, useEffect } from "react";
+import { useEclipseStore } from "../state/store";
 import { Earth } from "./Earth";
 import { Effects } from "./Effects";
 import { Moon } from "./Moon";
 import { CAMERA_WIDE } from "./scale";
 import { SimulationDriver } from "./SimulationDriver";
 import { Sun } from "./Sun";
+
+/** Mounts only once every suspended sibling (textures) has resolved. */
+function SceneReady() {
+  const setSceneReady = useEclipseStore((s) => s.setSceneReady);
+  useEffect(() => setSceneReady(), [setSceneReady]);
+  return null;
+}
 
 export function SceneRoot() {
   return (
@@ -24,6 +32,7 @@ export function SceneRoot() {
         <Earth />
         <Moon />
         <Sun />
+        <SceneReady />
       </Suspense>
       <SimulationDriver />
       <CameraControls makeDefault minDistance={1.3} maxDistance={140} smoothTime={0.35} />

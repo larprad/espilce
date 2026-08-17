@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { memo, useEffect, useRef, useState } from "react";
 import { CATALOG, nearestEclipse } from "../astro/catalog";
 import type { EclipseType } from "../astro/types";
 import { getSimTimeMs, useEclipseStore } from "../state/store";
@@ -6,8 +6,9 @@ import { fmtDate } from "./format";
 
 type Filter = "all" | EclipseType;
 
-/** Right-hand drawer listing all 681 eclipses, filterable, click to focus. */
-export function CatalogPanel() {
+/** Drawer listing all 681 eclipses, filterable, click to focus. Memoized so
+ *  parent re-renders never reconcile the ~680 permanently-mounted rows. */
+export const CatalogPanel = memo(function CatalogPanel() {
   const open = useEclipseStore((s) => s.catalogOpen);
   const selectedId = useEclipseStore((s) => s.selectedEclipseId);
   const utc = useEclipseStore((s) => s.timeDisplay === "utc");
@@ -74,4 +75,4 @@ export function CatalogPanel() {
       </div>
     </aside>
   );
-}
+});

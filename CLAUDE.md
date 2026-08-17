@@ -76,7 +76,13 @@ Derived-time model: `simTime = baseSimMs + (performance.now() − basePerfMs)·s
   camera orbiting the wrong point. `cameraPresetSeq` bumps on every click so re-clicking
   the active preset re-aims (Earth doubles as "recenter").
 - Altitude-proportional feel: `dollySpeed = azimuthRotateSpeed = polarRotateSpeed =
-  clamp((d−1)/d, 0.07, 1)` per frame (d = camera→target distance).
+  clamp(a/(a+1), 0.07, 1)` per frame, where `a` = altitude above the surface
+  (`d−1` for center targets, `d` for the eclipse lock's surface target, which also
+  gets `minDistance 0.3` instead of the global 1.3 so closest approach matches Earth).
+- "eclipse" preset: locks on the ongoing eclipse (shadow-axis surface point for solar,
+  Moon for lunar); the camera rotates around Earth with the sweeping shadow each frame
+  (position hard-set gated on `!controls.active`), auto-reverts to Earth when the
+  eclipse window ends. Button enabled via `activeEclipse()` (catalog.ts).
 
 ## Data (committed, regenerated manually)
 
