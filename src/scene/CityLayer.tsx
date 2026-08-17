@@ -104,7 +104,7 @@ export function CityLayer() {
     const slots: Slot[] = [];
     for (let i = 0; i < LABEL_POOL; i++) {
       const t = new Text();
-      t.font = "/fonts/Roboto-Regular.woff";
+      t.font = import.meta.env.BASE_URL + "fonts/Roboto-Regular.woff";
       t.fontSize = 0.01;
       t.color = "#dde4ef";
       t.outlineColor = "#05070d";

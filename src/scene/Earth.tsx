@@ -17,8 +17,8 @@ export const MESH_CALIBRATION_X = Math.PI / 2;
 export function Earth() {
   const gl = useThree((s) => s.gl);
   const [dayMap, nightMap] = useLoader(TextureLoader, [
-    "/textures/earth_day_8k.jpg",
-    "/textures/earth_night_8k.jpg",
+    import.meta.env.BASE_URL + "textures/earth_day_8k.jpg",
+    import.meta.env.BASE_URL + "textures/earth_night_8k.jpg",
   ]);
   const material = useMemo(() => {
     const maxAniso = gl.capabilities.getMaxAnisotropy();

@@ -7,7 +7,7 @@ import { sceneRefs } from "./sceneRefs";
 import { createMoonMaterial } from "./shaders/moonMaterial";
 
 export function Moon() {
-  const moonMap = useLoader(TextureLoader, "/textures/moon_2k.jpg");
+  const moonMap = useLoader(TextureLoader, import.meta.env.BASE_URL + "textures/moon_2k.jpg");
   const material = useMemo(() => {
     moonMap.colorSpace = SRGBColorSpace;
     moonMap.anisotropy = 8;
