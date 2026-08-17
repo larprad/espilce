@@ -107,15 +107,22 @@ export const useEclipseStore = create<EclipseStore>((set, get) => ({
     });
   },
 
+  // When an eclipse is already selected, step relative to ITS peak — the
+  // sim time sits 45 min before peak after selection, so searching from the
+  // sim time would find the same eclipse again and "next" would stick.
   jumpToNext: (type) => {
-    const e = nextEclipse(simTimeOf(get()) + 1000, type);
-    if (e) get().selectEclipse(e.id);
+    const s = get();
+    const sel = s.selectedEclipseId ? getEclipse(s.selectedEclipseId) : undefined;
+    const fromMs = sel ? Math.max(sel.peakMs, simTimeOf(s)) : simTimeOf(s);
+    const e = nextEclipse(fromMs + 1000, type);
+    if (e) s.selectEclipse(e.id);
   },
   jumpToPrev: (type) => {
-    // Step from 46 min before "now" so repeated clicks walk backwards even
-    // though selectEclipse lands at peak - 45 min.
-    const e = prevEclipse(simTimeOf(get()) - 46 * 60_000, type);
-    if (e) get().selectEclipse(e.id);
+    const s = get();
+    const sel = s.selectedEclipseId ? getEclipse(s.selectedEclipseId) : undefined;
+    const fromMs = sel ? Math.min(sel.peakMs, simTimeOf(s)) : simTimeOf(s);
+    const e = prevEclipse(fromMs - 1000, type);
+    if (e) s.selectEclipse(e.id);
   },
 
   setCameraPreset: (cameraPreset) => set({ cameraPreset }),
