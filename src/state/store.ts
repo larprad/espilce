@@ -29,6 +29,8 @@ interface EclipseStore {
   cameraPresetSeq: number;
   /** Obscuration overlay: iso-lines at 100/75/50/25% Sun coverage. */
   showContours: boolean;
+  /** City dots + labels when zoomed in. */
+  showCities: boolean;
   catalogOpen: boolean;
   /** Timezone used for every human-facing time (input included). */
   timeDisplay: "local" | "utc";
@@ -43,6 +45,7 @@ interface EclipseStore {
   jumpToPrev(type?: EclipseType): void;
   setCameraPreset(p: CameraPreset): void;
   setShowContours(on: boolean): void;
+  setShowCities(on: boolean): void;
   setCatalogOpen(open: boolean): void;
   setTimeDisplay(mode: "local" | "utc"): void;
 }
@@ -74,6 +77,7 @@ export const useEclipseStore = create<EclipseStore>((set, get) => ({
   cameraPreset: "earth",
   cameraPresetSeq: 0,
   showContours: false,
+  showCities: true,
   catalogOpen: false,
   timeDisplay: "local",
 
@@ -132,6 +136,7 @@ export const useEclipseStore = create<EclipseStore>((set, get) => ({
   setCameraPreset: (cameraPreset) =>
     set((s) => ({ cameraPreset, cameraPresetSeq: s.cameraPresetSeq + 1 })),
   setShowContours: (showContours) => set({ showContours }),
+  setShowCities: (showCities) => set({ showCities }),
   setCatalogOpen: (catalogOpen) => set({ catalogOpen }),
   setTimeDisplay: (timeDisplay) => set({ timeDisplay }),
 }));

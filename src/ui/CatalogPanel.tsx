@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
-import { CATALOG } from "../astro/catalog";
+import { CATALOG, nearestEclipse } from "../astro/catalog";
 import type { EclipseType } from "../astro/types";
-import { useEclipseStore } from "../state/store";
+import { getSimTimeMs, useEclipseStore } from "../state/store";
 import { fmtDate } from "./format";
 
 type Filter = "all" | EclipseType;
@@ -17,12 +17,23 @@ export function CatalogPanel() {
 
   const events = filter === "all" ? CATALOG : CATALOG.filter((e) => e.type === filter);
 
-  // Keep the selected row in view when the drawer opens or selection moves.
+  // Keep the selected row in view when the drawer opens or selection moves;
+  // with nothing selected (or the selection filtered out), center on the
+  // event nearest the current simulation date within the filtered list.
   useEffect(() => {
-    if (!open || !selectedId) return;
-    listRef.current
-      ?.querySelector(`[data-id="${selectedId}"]`)
-      ?.scrollIntoView({ block: "center" });
+    if (!open) return;
+    let targetId = selectedId;
+    if (!targetId || !listRef.current?.querySelector(`[data-id="${targetId}"]`)) {
+      const t = getSimTimeMs();
+      const nearest =
+        filter === "all"
+          ? nearestEclipse(t)
+          : CATALOG.filter((e) => e.type === filter).reduce((best, e) =>
+              Math.abs(e.peakMs - t) < Math.abs(best.peakMs - t) ? e : best,
+            );
+      targetId = nearest.id;
+    }
+    listRef.current?.querySelector(`[data-id="${targetId}"]`)?.scrollIntoView({ block: "center" });
   }, [open, selectedId, filter]);
 
   return (

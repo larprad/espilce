@@ -1,13 +1,14 @@
 import { useFrame, useThree } from "@react-three/fiber";
 import type CameraControls from "camera-controls";
 import { useEffect, useRef } from "react";
-import { Vector3 } from "three";
+import { MathUtils, Vector3 } from "three";
 import { computeGeoState } from "../astro/ephemeris";
 import { getSimTimeMs, useEclipseStore } from "../state/store";
 import { CAMERA_WIDE, MOON_DISPLAY_DIST, SUN_DISPLAY_DIST } from "./scale";
 import { sceneRefs } from "./sceneRefs";
 
 const _dir = new Vector3();
+const _target = new Vector3();
 
 /**
  * The per-frame heartbeat: derives sim time, runs the ephemeris, and writes
@@ -87,6 +88,18 @@ export function SimulationDriver() {
       c.setTarget(moonGroup.position.x, moonGroup.position.y, moonGroup.position.z, false);
     } else if (c && state.cameraPreset === "sun" && sunMesh) {
       c.setTarget(sunMesh.position.x, sunMesh.position.y, sunMesh.position.z, false);
+    }
+
+    // Altitude-proportional controls: dolly steps are multiplicative on the
+    // distance to the target's CENTER, so near the surface a single wheel
+    // tick would eat most of the remaining altitude — and a small drag would
+    // fling the view across continents. Scale both with proximity.
+    if (c) {
+      const d = c.camera.position.distanceTo(c.getTarget(_target));
+      const proximity = MathUtils.clamp((d - 1) / d, 0.07, 1.0);
+      c.dollySpeed = proximity;
+      c.azimuthRotateSpeed = proximity;
+      c.polarRotateSpeed = proximity;
     }
   });
 

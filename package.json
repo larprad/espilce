@@ -8,7 +8,8 @@
     "build": "tsc -b && vite build",
     "lint": "oxlint",
     "preview": "vite preview",
-    "generate:catalog": "node scripts/generate-catalog.mjs"
+    "generate:catalog": "node scripts/generate-catalog.mjs",
+    "generate:cities": "node scripts/generate-cities.mjs"
   },
   "dependencies": {
     "@react-three/drei": "^10.7.8",
@@ -19,6 +20,7 @@
     "react": "^19.2.8",
     "react-dom": "^19.2.8",
     "three": "^0.185.1",
+    "troika-three-text": "^0.52.5",
     "zustand": "^5.0.15"
   },
   "devDependencies": {

@@ -12,7 +12,7 @@ export function SceneRoot() {
   return (
     <Canvas
       dpr={[1, 2]}
-      camera={{ position: CAMERA_WIDE, fov: 42, near: 0.1, far: 500 }}
+      camera={{ position: CAMERA_WIDE, fov: 42, near: 0.02, far: 500 }}
       gl={{ antialias: true }}
       onCreated={(state) => {
         if (import.meta.env.DEV) (window as unknown as Record<string, unknown>).__r3f = state;
@@ -26,7 +26,7 @@ export function SceneRoot() {
         <Sun />
       </Suspense>
       <SimulationDriver />
-      <CameraControls makeDefault minDistance={2} maxDistance={140} smoothTime={0.35} />
+      <CameraControls makeDefault minDistance={1.3} maxDistance={140} smoothTime={0.35} />
       <Effects />
     </Canvas>
   );

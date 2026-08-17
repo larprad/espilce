@@ -13,10 +13,18 @@ const PRESETS: Array<[CameraPreset, string, string]> = [
 export function HUD() {
   const cameraPreset = useEclipseStore((s) => s.cameraPreset);
   const showContours = useEclipseStore((s) => s.showContours);
+  const showCities = useEclipseStore((s) => s.showCities);
   const catalogOpen = useEclipseStore((s) => s.catalogOpen);
   const [aboutOpen, setAboutOpen] = useState(false);
-  const { setCameraPreset, setShowContours, setCatalogOpen, togglePlay, jumpToPrev, jumpToNext } =
-    useEclipseStore.getState();
+  const {
+    setCameraPreset,
+    setShowContours,
+    setShowCities,
+    setCatalogOpen,
+    togglePlay,
+    jumpToPrev,
+    jumpToNext,
+  } = useEclipseStore.getState();
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
@@ -64,6 +72,13 @@ export function HUD() {
           Lines
         </button>
         <button
+          className={`btn ${showCities ? "is-active" : ""}`}
+          onClick={() => setShowCities(!showCities)}
+          title="City dots and names when zoomed in"
+        >
+          Cities
+        </button>
+        <button
           className={`btn ${catalogOpen ? "is-active" : ""}`}
           onClick={() => setCatalogOpen(!catalogOpen)}
         >
@@ -76,7 +91,17 @@ export function HUD() {
 
       {aboutOpen && (
         <div className="about panel">
-          <h3>Espilce</h3>
+          <h3>
+            Espilce
+            <a
+              className="about__by"
+              href="https://github.com/larprad/espilce"
+              target="_blank"
+              rel="noreferrer"
+            >
+              by Larprad
+            </a>
+          </h3>
           <p>
             A 3D eclipse viewer. Positions come from real ephemeris data (
             <a href="https://github.com/cosinekitty/astronomy" target="_blank" rel="noreferrer">
@@ -89,6 +114,10 @@ export function HUD() {
             Textures by{" "}
             <a href="https://www.solarsystemscope.com/textures/" target="_blank" rel="noreferrer">
               Solar System Scope
+            </a>{" "}
+            (CC BY 4.0). City data by{" "}
+            <a href="https://www.geonames.org/" target="_blank" rel="noreferrer">
+              GeoNames
             </a>{" "}
             (CC BY 4.0).
           </p>
