@@ -76,8 +76,8 @@ export const useEclipseStore = create<EclipseStore>((set, get) => ({
   fineWindow: null,
   cameraPreset: "earth",
   cameraPresetSeq: 0,
-  showContours: false,
-  showCities: true,
+  showContours: true,
+  showCities: false,
   catalogOpen: false,
   timeDisplay: "local",
 
