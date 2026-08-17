@@ -110,13 +110,18 @@ export const useEclipseStore = create<EclipseStore>((set, get) => ({
     }
     const e = getEclipse(id);
     if (!e) return;
-    set({
+    set((s) => ({
       selectedEclipseId: id,
       fineWindow: fineWindowFor(id),
       baseSimMs: clampTime(e.peakMs - 45 * 60_000),
       basePerfMs: null, // land paused, ready to scrub or play
       speed: 600,
-    });
+      // Always show the phenomenon itself: the eclipse camera lock presents
+      // solar events as the shadow on Earth and lunar ones as the red Moon.
+      // The seq bump forces a re-aim even if the lock was already active.
+      cameraPreset: "eclipse" as const,
+      cameraPresetSeq: s.cameraPresetSeq + 1,
+    }));
   },
 
   // When an eclipse is already selected, step relative to ITS peak — the

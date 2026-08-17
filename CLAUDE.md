@@ -83,6 +83,8 @@ Derived-time model: `simTime = baseSimMs + (performance.now() − basePerfMs)·s
   Moon for lunar); the camera rotates around Earth with the sweeping shadow each frame
   (position hard-set gated on `!controls.active`), auto-reverts to Earth when the
   eclipse window ends. Button enabled via `activeEclipse()` (catalog.ts).
+  **Selecting an eclipse (catalog / Prev / Next) switches to this lock automatically**
+  so the phenomenon is always in view.
 
 ## Data (committed, regenerated manually)
 
