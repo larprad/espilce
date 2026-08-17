@@ -23,9 +23,12 @@ fake distances. Shadows are computed analytically per-fragment in real km via un
 - EQJ (equatorial J2000) → ecliptic via `Rotation_EQJ_ECL()` (module-scope constant).
   **Both** position vectors AND body-axis vectors must go through EQJ→ECL before the
   bridge — skipping it for the axes was the "no axial tilt" bug (terminator off ±23.4°).
-- Body orientation: [frames.ts](src/astro/frames.ts) `quatFromAxisInfo` builds the IAU body
-  frame (Z=pole, X=prime meridian, W spin angle from the node) from `RotationAxis()`, for
-  both Earth (precession) and Moon (libration).
+- Body orientation ([frames.ts](src/astro/frames.ts)): **Earth uses `earthOrientation()`**
+  (GAST + equator-of-date via `SiderealTime` + `Rotation_EQD_EQJ`). **Never use
+  `RotationAxis(Body.Earth)`** — its IAU node (equator-of-date ∩ J2000 equator) is
+  numerically degenerate near the year 2000: it put the 1999-08-11 eclipse 154° of
+  longitude away from France and left a ~0.9° residual even in the 2020s. The Moon keeps
+  `quatFromAxisInfo(RotationAxis(Body.Moon))` (well-conditioned node + libration).
 - Mesh calibration: three.js SphereGeometry has poles on ±Y and the equirect prime
   meridian on +X ⇒ every body mesh gets `rotation-x={MESH_CALIBRATION_X}` (+90° about X,
   defined in [Earth.tsx](src/scene/Earth.tsx)). City markers live inside the same
@@ -133,6 +136,9 @@ limitation, pending user verdict on real devices). TZ toggle hidden on mobile.
   (36 s, sun alt 8.3°) — the user's real-world observation; the totality line must
   enclose Bilbao around 18:27:22.
 - **2024-04-08 solar**: peak 18:17:19 UTC, umbra at 25.3 N / 104.1 W (northern Mexico).
+- **1999-08-11 solar, Reims (49.26 N, 4.03 E)**: totality 10:24:30–10:26:33 UTC — the
+  regression that exposed the RotationAxis(Earth) singularity; the totality line must
+  cross northern France (Normandy–Reims–Strasbourg).
 - **2023-10-14 annular**: never fully dark; no 100% line anywhere.
 - **2025-03-14 lunar**: blood moon at 06:58 UTC (Moon camera preset).
 - Subsolar longitude ≈ 0° at any 12:00 UTC (±2.5° equation of time).

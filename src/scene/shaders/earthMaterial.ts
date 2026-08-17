@@ -74,10 +74,10 @@ const fragment = /* glsl */ `
       float l25 = lineAt(coverage, 0.25);
       float l50 = lineAt(coverage, 0.50);
       float l75 = lineAt(coverage, 0.75);
-      // 0.999 rather than 1.0: the model carries a few-km systematic
-      // under-coverage (spherical-harmonic ephemeris + planar disc overlap),
-      // so a slightly lower threshold tracks the true totality edge best.
-      float l100 = lineAt(coverage, 0.999);
+      // 0.9995 rather than 1.0: the coverage plateau needs a hair of margin
+      // for the fwidth-based line to resolve; verified against true totality
+      // durations at Reims 1999 / Bilbao 2026 / Mexico 2024.
+      float l100 = lineAt(coverage, 0.9995);
       lineColor = C25 * l25 + C50 * l50 + C75 * l75 + C100 * l100;
       lineAlpha = max(max(0.9 * l25, 0.9 * l50), max(0.95 * l75, l100));
 

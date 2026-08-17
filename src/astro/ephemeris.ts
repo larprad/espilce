@@ -1,6 +1,6 @@
 import { Quaternion, Vector3 } from "three";
 import { Body, GeoMoon, GeoVector, MakeTime, RotationAxis } from "astronomy-engine";
-import { eqjToSceneKm, quatFromAxisInfo } from "./frames";
+import { earthOrientation, eqjToSceneKm, quatFromAxisInfo } from "./frames";
 import type { GeoState } from "./types";
 
 const _state: GeoState = {
@@ -20,7 +20,7 @@ export function computeGeoState(timeMs: number): GeoState {
   const t = MakeTime(new Date(timeMs));
   eqjToSceneKm(GeoVector(Body.Sun, t, true), _state.sunKm);
   eqjToSceneKm(GeoMoon(t), _state.moonKm);
-  quatFromAxisInfo(RotationAxis(Body.Earth, t), _state.earthQuat);
+  earthOrientation(t, _state.earthQuat);
   quatFromAxisInfo(RotationAxis(Body.Moon, t), _state.moonQuat);
   return _state;
 }
