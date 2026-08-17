@@ -1,0 +1,94 @@
+@import "./tokens.css";
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html,
+body,
+#root {
+  height: 100%;
+  overflow: hidden;
+}
+
+body {
+  background: var(--bg-0);
+  color: var(--text-1);
+  font-family: var(--font-ui);
+  font-size: var(--fs-m);
+  -webkit-font-smoothing: antialiased;
+  color-scheme: dark;
+}
+
+button {
+  font-family: inherit;
+  color: inherit;
+  background: none;
+  border: none;
+  cursor: pointer;
+}
+
+/* ---------- App shell ---------- */
+
+.app {
+  position: relative;
+  height: 100%;
+}
+
+.app > canvas {
+  display: block;
+}
+
+/* ---------- Shared panel style ---------- */
+
+.panel {
+  background: var(--panel);
+  backdrop-filter: var(--blur-panel);
+  -webkit-backdrop-filter: var(--blur-panel);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-l);
+  box-shadow: var(--shadow-panel);
+}
+
+/* ---------- Loading screen ---------- */
+
+.loading-screen {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--sp-4);
+  background: var(--bg-0);
+  z-index: 100;
+}
+
+.loading-screen .logo {
+  font-size: var(--fs-xl);
+  font-weight: 600;
+  letter-spacing: 0.35em;
+  text-transform: uppercase;
+  color: var(--text-1);
+}
+
+.loading-screen .hint {
+  color: var(--text-3);
+  font-size: var(--fs-s);
+}
+
+.loading-screen .disc {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 35% 35%, #2a3550, #0b0f1a 70%);
+  box-shadow: 0 0 24px 4px rgba(255, 179, 71, 0.35), inset -6px -6px 14px rgba(0, 0, 0, 0.6);
+  animation: eclipse-pulse 1.6s ease-in-out infinite;
+}
+
+@keyframes eclipse-pulse {
+  0%, 100% { box-shadow: 0 0 18px 2px rgba(255, 179, 71, 0.25), inset -6px -6px 14px rgba(0, 0, 0, 0.6); }
+  50% { box-shadow: 0 0 32px 8px rgba(255, 179, 71, 0.5), inset -6px -6px 14px rgba(0, 0, 0, 0.6); }
+}
