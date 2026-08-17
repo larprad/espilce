@@ -19,12 +19,18 @@ export function SimulationDriver() {
   const controlsRef = useRef(controls);
   controlsRef.current = controls;
 
-  // Camera preset transitions (smooth), applied on change only.
+  // Camera preset transitions (smooth), applied when the preset changes —
+  // or when a new eclipse is selected, so Sun-line/Moon views re-aim at the
+  // new event's geometry instead of pointing where the old one was.
   useEffect(
     () =>
       useEclipseStore.subscribe((state, prev) => {
         const c = controlsRef.current;
-        if (!c || state.cameraPreset === prev.cameraPreset) return;
+        if (!c) return;
+        const presetChanged = state.cameraPreset !== prev.cameraPreset;
+        const eclipseChanged =
+          state.selectedEclipseId !== prev.selectedEclipseId && state.selectedEclipseId !== null;
+        if (!presetChanged && !(eclipseChanged && state.cameraPreset !== "wide")) return;
         const t = getSimTimeMs();
         const gs = computeGeoState(t);
         if (state.cameraPreset === "wide") {

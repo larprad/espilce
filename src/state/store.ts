@@ -27,6 +27,8 @@ interface EclipseStore {
   cameraPreset: CameraPreset;
   shadowBoost: boolean;
   catalogOpen: boolean;
+  /** Timezone used for every human-facing time (input included). */
+  timeDisplay: "local" | "utc";
 
   setTime(ms: number): void;
   play(): void;
@@ -39,6 +41,7 @@ interface EclipseStore {
   setCameraPreset(p: CameraPreset): void;
   setShadowBoost(on: boolean): void;
   setCatalogOpen(open: boolean): void;
+  setTimeDisplay(mode: "local" | "utc"): void;
 }
 
 const clampTime = (ms: number) => Math.min(MAX_TIME_MS, Math.max(MIN_TIME_MS, ms));
@@ -68,6 +71,7 @@ export const useEclipseStore = create<EclipseStore>((set, get) => ({
   cameraPreset: "wide",
   shadowBoost: false,
   catalogOpen: false,
+  timeDisplay: "local",
 
   setTime: (ms) =>
     set((s) => ({
@@ -117,6 +121,7 @@ export const useEclipseStore = create<EclipseStore>((set, get) => ({
   setCameraPreset: (cameraPreset) => set({ cameraPreset }),
   setShadowBoost: (shadowBoost) => set({ shadowBoost }),
   setCatalogOpen: (catalogOpen) => set({ catalogOpen }),
+  setTimeDisplay: (timeDisplay) => set({ timeDisplay }),
 }));
 
 /** Current sim time — for use outside React render (useFrame, event handlers). */

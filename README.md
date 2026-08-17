@@ -42,6 +42,8 @@ npm run dev
 
 - **Drag** to orbit, **scroll** to zoom.
 - **Space** — play/pause. **Shift+←/→** — previous/next eclipse.
+- Times are shown in **your local timezone** by default (that's how you remember an
+  eclipse); a toggle in the dock switches everything to UTC.
 - Pick an eclipse in the **Catalog** to get an hours-scale slider with phase marks.
 - **Boost shadow** widens the umbra/penumbra for visibility (clearly non-physical).
 

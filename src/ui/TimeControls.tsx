@@ -2,7 +2,7 @@ import { SPEEDS, type Speed, useEclipseStore } from "../state/store";
 import { useSimTime } from "../state/useSimTime";
 import { CoarseSlider } from "./CoarseSlider";
 import { FineSlider } from "./FineSlider";
-import { fromDatetimeLocalUTC, toDatetimeLocalUTC } from "./format";
+import { fromDatetimeInput, toDatetimeInput, zoneLabel } from "./format";
 
 const SPEED_LABELS: Record<Speed, string> = {
   1: "1×",
@@ -19,7 +19,8 @@ export function TimeControls() {
   const playing = useEclipseStore((s) => s.basePerfMs !== null);
   const speed = useEclipseStore((s) => s.speed);
   const fineWindow = useEclipseStore((s) => s.fineWindow);
-  const { togglePlay, setSpeed, setTime, jumpToPrev, jumpToNext, selectEclipse } =
+  const utc = useEclipseStore((s) => s.timeDisplay === "utc");
+  const { togglePlay, setSpeed, setTime, jumpToPrev, jumpToNext, selectEclipse, setTimeDisplay } =
     useEclipseStore.getState();
 
   return (
@@ -36,16 +37,30 @@ export function TimeControls() {
         <input
           className="datetime"
           type="datetime-local"
-          value={toDatetimeLocalUTC(timeMs)}
-          min={toDatetimeLocalUTC(Date.UTC(1950, 0, 1))}
-          max={toDatetimeLocalUTC(Date.UTC(2100, 11, 31))}
+          value={toDatetimeInput(timeMs, utc)}
+          min={toDatetimeInput(Date.UTC(1950, 0, 2), utc)}
+          max={toDatetimeInput(Date.UTC(2100, 11, 30), utc)}
           onChange={(e) => {
-            const ms = fromDatetimeLocalUTC(e.target.value);
+            const ms = fromDatetimeInput(e.target.value, utc);
             if (Number.isFinite(ms)) setTime(ms);
           }}
-          aria-label="Simulation date and time (UTC)"
+          aria-label={`Simulation date and time (${zoneLabel(utc)})`}
         />
-        <span className="utc-tag">UTC</span>
+        <div className="speed-group" role="group" aria-label="Timezone">
+          <button
+            className={`btn btn--speed ${!utc ? "is-active" : ""}`}
+            onClick={() => setTimeDisplay("local")}
+            title={`Your timezone (${zoneLabel(false)})`}
+          >
+            {zoneLabel(false)}
+          </button>
+          <button
+            className={`btn btn--speed ${utc ? "is-active" : ""}`}
+            onClick={() => setTimeDisplay("utc")}
+          >
+            UTC
+          </button>
+        </div>
 
         <div className="speed-group" role="group" aria-label="Playback speed">
           {SPEEDS.map((s) => (

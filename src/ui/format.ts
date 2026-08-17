@@ -1,20 +1,42 @@
 import type { EclipseEvent } from "../astro/types";
 
-const dateFmt = new Intl.DateTimeFormat("en-GB", {
-  year: "numeric",
-  month: "short",
-  day: "2-digit",
-  timeZone: "UTC",
-});
-const timeFmt = new Intl.DateTimeFormat("en-GB", {
-  hour: "2-digit",
-  minute: "2-digit",
-  timeZone: "UTC",
-});
+/**
+ * All formatters take `utc`: false = the viewer's local timezone (default
+ * presentation — people remember eclipses in their local time), true = UTC.
+ */
 
-export const fmtDate = (ms: number) => dateFmt.format(ms);
-export const fmtTime = (ms: number) => `${timeFmt.format(ms)} UTC`;
-export const fmtDateTime = (ms: number) => `${fmtDate(ms)} · ${fmtTime(ms)}`;
+const dateFmt = (utc: boolean) =>
+  new Intl.DateTimeFormat("en-GB", {
+    year: "numeric",
+    month: "short",
+    day: "2-digit",
+    timeZone: utc ? "UTC" : undefined,
+  });
+const timeFmt = (utc: boolean) =>
+  new Intl.DateTimeFormat("en-GB", {
+    hour: "2-digit",
+    minute: "2-digit",
+    timeZoneName: "short",
+    timeZone: utc ? "UTC" : undefined,
+  });
+
+const FMT = {
+  date: { local: dateFmt(false), utc: dateFmt(true) },
+  time: { local: timeFmt(false), utc: timeFmt(true) },
+};
+
+const pick = (utc: boolean): "utc" | "local" => (utc ? "utc" : "local");
+
+export const fmtDate = (ms: number, utc: boolean) => FMT.date[pick(utc)].format(ms);
+export const fmtTime = (ms: number, utc: boolean) => FMT.time[pick(utc)].format(ms);
+export const fmtDateTime = (ms: number, utc: boolean) =>
+  `${fmtDate(ms, utc)} · ${fmtTime(ms, utc)}`;
+
+/** Short name of the zone currently displayed, e.g. "CEST" or "UTC". */
+export function zoneLabel(utc: boolean): string {
+  const parts = FMT.time[pick(utc)].formatToParts(Date.now());
+  return parts.find((p) => p.type === "timeZoneName")?.value ?? (utc ? "UTC" : "local");
+}
 
 export function fmtCountdown(fromMs: number, toMs: number): string {
   const delta = toMs - fromMs;
@@ -37,10 +59,20 @@ export function eclipseTitle(e: EclipseEvent): string {
   return `${kind} ${e.type} eclipse`;
 }
 
-/** For a datetime-local input (which has no timezone), expressed in UTC. */
-export function toDatetimeLocalUTC(ms: number): string {
-  return new Date(ms).toISOString().slice(0, 16);
+const pad = (n: number) => String(n).padStart(2, "0");
+
+/**
+ * Value for a datetime-local input. The control is timezone-less; we feed it
+ * wall-clock digits in the chosen zone and parse them back symmetrically.
+ */
+export function toDatetimeInput(ms: number, utc: boolean): string {
+  const d = new Date(ms);
+  return utc
+    ? d.toISOString().slice(0, 16)
+    : `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
 }
-export function fromDatetimeLocalUTC(value: string): number {
-  return Date.parse(`${value}:00Z`);
+
+export function fromDatetimeInput(value: string, utc: boolean): number {
+  // In local mode a bare datetime string parses in the viewer's timezone.
+  return Date.parse(utc ? `${value}:00Z` : value);
 }

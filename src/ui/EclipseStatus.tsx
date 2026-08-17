@@ -8,6 +8,7 @@ export function EclipseStatus() {
   const timeMs = useSimTime();
   const selectedId = useEclipseStore((s) => s.selectedEclipseId);
   const selectEclipse = useEclipseStore((s) => s.selectEclipse);
+  const utc = useEclipseStore((s) => s.timeDisplay === "utc");
 
   const eclipse = (selectedId && getEclipse(selectedId)) || nearestEclipse(timeMs);
   const isSelected = selectedId === eclipse.id;
@@ -22,7 +23,7 @@ export function EclipseStatus() {
       <span className="status__body">
         <span className="status__title">{eclipseTitle(eclipse)}</span>
         <span className="status__meta">
-          {fmtDateTime(eclipse.peakMs)} — {fmtCountdown(timeMs, eclipse.peakMs)}
+          {fmtDateTime(eclipse.peakMs, utc)} — {fmtCountdown(timeMs, eclipse.peakMs)}
         </span>
       </span>
     </button>

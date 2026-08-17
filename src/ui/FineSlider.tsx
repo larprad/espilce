@@ -15,6 +15,7 @@ export function FineSlider() {
   const setTime = useEclipseStore((s) => s.setTime);
   const window = useEclipseStore((s) => s.fineWindow);
   const selectedId = useEclipseStore((s) => s.selectedEclipseId);
+  const utc = useEclipseStore((s) => s.timeDisplay === "utc");
   const eclipse = selectedId ? getEclipse(selectedId) : undefined;
 
   if (!window || !eclipse) return null;
@@ -39,7 +40,7 @@ export function FineSlider() {
 
   return (
     <div className="slider-row slider-row--fine">
-      <span className="slider-label">{fmtTime(window.startMs)}</span>
+      <span className="slider-label">{fmtTime(window.startMs, utc)}</span>
       <div className="fine-track">
         <div className="fine-marks">
           {marks.map((m) => (
@@ -47,7 +48,7 @@ export function FineSlider() {
               key={`${m.label}-${m.ms}`}
               className={`fine-mark ${m.major ? "fine-mark--major" : ""}`}
               style={{ left: pct(m.ms) }}
-              title={`${m.label} — ${fmtTime(m.ms)}`}
+              title={`${m.label} — ${fmtTime(m.ms, utc)}`}
             />
           ))}
         </div>
@@ -62,7 +63,7 @@ export function FineSlider() {
           aria-label="Time within eclipse window"
         />
       </div>
-      <span className="slider-label">{fmtTime(window.endMs)}</span>
+      <span className="slider-label">{fmtTime(window.endMs, utc)}</span>
     </div>
   );
 }

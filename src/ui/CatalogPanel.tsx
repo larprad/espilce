@@ -10,6 +10,7 @@ type Filter = "all" | EclipseType;
 export function CatalogPanel() {
   const open = useEclipseStore((s) => s.catalogOpen);
   const selectedId = useEclipseStore((s) => s.selectedEclipseId);
+  const utc = useEclipseStore((s) => s.timeDisplay === "utc");
   const { selectEclipse, setCatalogOpen } = useEclipseStore.getState();
   const [filter, setFilter] = useState<Filter>("all");
   const listRef = useRef<HTMLDivElement>(null);
@@ -51,7 +52,7 @@ export function CatalogPanel() {
             className={`row ${selectedId === e.id ? "is-selected" : ""}`}
             onClick={() => selectEclipse(e.id)}
           >
-            <span className="row__date">{fmtDate(e.peakMs)}</span>
+            <span className="row__date">{fmtDate(e.peakMs, utc)}</span>
             <span className={`chip chip--${e.type}`}>{e.type}</span>
             <span className="row__kind">{e.kind}</span>
             <span className="row__obs">

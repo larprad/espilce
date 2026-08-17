@@ -19,6 +19,21 @@ export function eqjToSceneKm(vec: Vector, out: Vector3): Vector3 {
   return out.set(e.x, e.z, -e.y).multiplyScalar(KM_PER_AU);
 }
 
+/**
+ * EQJ direction (Vector3) -> scene axes, in place: rotate into the ecliptic
+ * frame (same matrix/convention as RotateVector), then the Z-up -> Y-up
+ * bridge. Skipping the ecliptic rotation here was the "no axial tilt" bug —
+ * Earth's pole would land on the ecliptic pole and the terminator lost its
+ * seasonal ±23.4°.
+ */
+function eqjDirToScene(v: Vector3): Vector3 {
+  const r = EQJ_TO_ECL.rot;
+  const x = r[0][0] * v.x + r[1][0] * v.y + r[2][0] * v.z;
+  const y = r[0][1] * v.x + r[1][1] * v.y + r[2][1] * v.z;
+  const z = r[0][2] * v.x + r[1][2] * v.y + r[2][2] * v.z;
+  return v.set(x, z, -y);
+}
+
 // Scratch objects — this module is called every frame; avoid allocation.
 const _pole = new Vector3();
 const _node = new Vector3();
@@ -50,16 +65,17 @@ export function quatFromAxisInfo(axis: AxisInfo, out: Quaternion): Quaternion {
   _xb.crossVectors(_pole, _node).multiplyScalar(Math.sin(w)).addScaledVector(_node, Math.cos(w));
   _yb.crossVectors(_pole, _xb);
 
-  // Body -> EQJ has columns [X_b, Y_b, P]. Convert each column from EQJ
-  // Z-up to scene Y-up via (x, y, z) -> (x, z, -y), then also swap which
-  // body axis is "up" for the mesh: three.js SphereGeometry poles are +/-Y,
-  // so we want body +Z (pole) to land on mesh +Y. That second swap is the
-  // mesh calibration and lives with the mesh, not here — this quaternion
-  // maps body coordinates (Z = pole) to scene coordinates.
+  // Body -> EQJ has columns [X_b, Y_b, P]. Re-express each column in scene
+  // axes (ecliptic rotation + axis bridge), then assemble the matrix. The
+  // mesh-level pole swap (SphereGeometry poles are +/-Y, body pole is +Z)
+  // is the mesh calibration and lives with the mesh, not here.
+  eqjDirToScene(_xb);
+  eqjDirToScene(_yb);
+  eqjDirToScene(_pole);
   _m.set(
     _xb.x, _yb.x, _pole.x, 0,
+    _xb.y, _yb.y, _pole.y, 0,
     _xb.z, _yb.z, _pole.z, 0,
-    -_xb.y, -_yb.y, -_pole.y, 0,
     0, 0, 0, 1,
   );
   return out.setFromRotationMatrix(_m);
