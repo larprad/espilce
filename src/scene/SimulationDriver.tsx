@@ -16,6 +16,7 @@ const _axis = new Vector3();
 const _prevLock = new Vector3(); // zero-length = lock not engaged
 const _lockQ = new Quaternion();
 const _camPos = new Vector3();
+let _prevSimT = Number.NaN;
 
 /**
  * Where a solar eclipse is "happening" on Earth right now: the unit direction
@@ -58,7 +59,20 @@ export function SimulationDriver() {
           state.selectedEclipseId !== prev.selectedEclipseId && state.selectedEclipseId !== null;
         if (!presetClicked && !(eclipseChanged && state.cameraPreset !== "earth")) return;
         if (state.cameraPreset === "earth") {
-          c.setLookAt(...CAMERA_WIDE, 0, 0, 0, true);
+          // Same wide distance as the default view, but oriented so the
+          // ongoing eclipse faces the camera (solar: shadow side; lunar: the
+          // Moon sits between camera and Earth).
+          const t = getSimTimeMs();
+          const e = activeEclipse(t, state.selectedEclipseId);
+          if (e) {
+            const gs = computeGeoState(t);
+            const d = Math.hypot(...CAMERA_WIDE);
+            if (e.type === "solar") shadowLockDir(gs, _dir);
+            else _dir.copy(gs.moonKm).normalize();
+            c.setLookAt(_dir.x * d, _dir.y * d, _dir.z * d, 0, 0, 0, true);
+          } else {
+            c.setLookAt(...CAMERA_WIDE, 0, 0, 0, true);
+          }
         } else if (state.cameraPreset === "eclipse") {
           // Lock on the ongoing eclipse: hover over the shadow's maximum
           // point for solar; the Moon's near side for lunar.
@@ -108,7 +122,17 @@ export function SimulationDriver() {
   useFrame(() => {
     const { earthGroup, moonGroup, sunMesh, earthMaterial, moonMaterial } = sceneRefs;
     const state = useEclipseStore.getState();
-    const gs = computeGeoState(getSimTimeMs());
+    const t = getSimTimeMs();
+
+    // Stop playback when it crosses the end of the eclipse window (only on
+    // the crossing — playing from beyond the window stays free).
+    if (state.basePerfMs !== null && _prevSimT < state.fineWindow.endMs && t >= state.fineWindow.endMs) {
+      state.pause();
+      state.setTime(state.fineWindow.endMs);
+    }
+    _prevSimT = t;
+
+    const gs = computeGeoState(t);
 
     if (earthGroup) earthGroup.quaternion.copy(gs.earthQuat);
     if (moonGroup) {

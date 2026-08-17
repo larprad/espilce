@@ -33,21 +33,29 @@ const fragment = /* glsl */ `
     vec3 sunDir = normalize(uSunPosKm);
 
     float coverage = sunCoverage(vGeoPosKm, uSunPosKm, uMoonPosKm, R_MOON_KM);
+    // Deliberately exaggerated shading copy: wider penumbra, darker partial
+    // zones, so the shadow reads at a glance. The iso-lines below keep using
+    // the PHYSICAL coverage — they carry the exact values.
+    float shade = pow(coverage, 0.55);
 
     float ndl = dot(vDir, sunDir);
     float dayness = smoothstep(-0.08, 0.08, ndl);
     // Diffuse sun term (HDR headroom for the tone mapper), dimmed by the
     // eclipse. A wisp of light survives in the umbra so the spot reads as
     // shadow rather than a texture hole.
-    float light = 1.8 * dayness * max(ndl, 0.0) * (1.0 - 0.985 * coverage);
+    float light = 1.8 * dayness * max(ndl, 0.0) * (1.0 - 0.985 * shade);
 
     vec3 day = texture2D(uDayMap, vUv).rgb;
     vec3 night = texture2D(uNightMap, vUv).rgb;
 
-    // City lights glow wherever direct sunlight is absent — including inside
-    // the umbra during totality, which is physically what happens.
-    float darkness = 1.0 - dayness * (1.0 - coverage);
-    vec3 color = day * light + night * vec3(1.0, 0.85, 0.6) * 0.9 * darkness;
+    // City lights: switch on at sunset (not during late afternoon — their
+    // ramp is tighter than the day/night blend), reaching full strength a
+    // few degrees below the horizon; they also emerge under DEEP eclipse
+    // shadow, which is physically what happens during totality.
+    float lightsNight = smoothstep(0.01, -0.07, ndl);
+    float lightsEclipse = dayness * smoothstep(0.75, 0.98, shade);
+    float lightsOn = max(lightsNight, lightsEclipse);
+    vec3 color = day * light + night * vec3(1.0, 0.85, 0.6) * 0.9 * lightsOn;
 
     // Warm tint along the terminator band.
     float twilight = smoothstep(0.12, 0.0, abs(ndl)) * dayness;
@@ -55,7 +63,7 @@ const fragment = /* glsl */ `
 
     // Fresnel atmosphere rim, strongest on the lit side.
     float fresnel = pow(1.0 - clamp(dot(vViewDir, vDir), 0.0, 1.0), 3.0);
-    color += vec3(0.18, 0.38, 0.85) * fresnel * (0.15 + 0.85 * dayness * (1.0 - coverage));
+    color += vec3(0.18, 0.38, 0.85) * fresnel * (0.15 + 0.85 * dayness * (1.0 - shade));
 
     // Optional overlay: iso-lines of Sun coverage (25/50/75%, and the ~100%
     // totality/annularity boundary). Cool-to-hot ramp: deeper eclipse,

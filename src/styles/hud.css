@@ -107,12 +107,88 @@
   padding: 6px 10px;
 }
 
+/* The play button is a little eclipse: dark disc, warm corona. It pulses
+   while paused (inviting the press) and settles while playing. */
 .btn--play {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  padding: 8px 12px;
+  width: 46px;
+  height: 46px;
+  flex-shrink: 0;
+  border-radius: 50%;
   color: var(--text-1);
+  background: radial-gradient(circle at 35% 35%, #202b47, #0b0f1a 75%);
+  border: 1px solid rgba(255, 179, 71, 0.28);
+  box-shadow:
+    0 0 8px 1px rgba(255, 179, 71, 0.18),
+    0 0 18px 3px rgba(255, 179, 71, 0.06);
+  transition: box-shadow var(--transition-fast), border-color var(--transition-fast);
+}
+
+.btn--play:hover {
+  border-color: rgba(255, 179, 71, 0.5);
+  box-shadow:
+    0 0 10px 2px rgba(255, 179, 71, 0.28),
+    0 0 22px 4px rgba(255, 179, 71, 0.08);
+}
+
+.btn--play svg {
+  filter: drop-shadow(0 0 3px rgba(255, 179, 71, 0.35));
+}
+
+.btn--play--paused {
+  animation: corona-pulse 2.4s ease-in-out infinite;
+}
+
+@keyframes corona-pulse {
+  0%,
+  100% {
+    box-shadow:
+      0 0 6px 1px rgba(255, 179, 71, 0.14),
+      0 0 15px 2px rgba(255, 179, 71, 0.05);
+  }
+  50% {
+    box-shadow:
+      0 0 10px 2px rgba(255, 179, 71, 0.26),
+      0 0 22px 4px rgba(255, 179, 71, 0.08);
+  }
+}
+
+.dock__left {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-3);
+}
+
+/* Secondary transport button: replay the whole eclipse. */
+.btn--replay {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 34px;
+  flex-shrink: 0;
+  border-radius: 50%;
+  color: var(--text-2);
+  border: 1px solid var(--border);
+  background: rgba(255, 255, 255, 0.04);
+  transition: color var(--transition-fast), border-color var(--transition-fast),
+    background var(--transition-fast);
+}
+
+.btn--replay:hover {
+  color: var(--text-1);
+  border-color: var(--border-strong);
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.dock__time {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-3);
+  flex-wrap: wrap;
+  justify-content: flex-end;
 }
 
 .chip {
@@ -186,6 +262,7 @@
 
 .dock__row--transport {
   flex-wrap: wrap;
+  justify-content: space-between;
 }
 
 .datetime {
@@ -487,6 +564,13 @@
   --lv-75: #ffb347;
   --lv-50: #80e0d1;
   --lv-25: #6ea8ff;
+}
+
+.legend__title {
+  color: var(--text-3);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  margin-right: var(--sp-1);
 }
 
 .legend__item {

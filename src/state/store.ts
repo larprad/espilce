@@ -42,6 +42,8 @@ interface EclipseStore {
   play(): void;
   pause(): void;
   togglePlay(): void;
+  /** Rewind to the start of the selected eclipse's window and play it. */
+  replayEclipse(): void;
   setSpeed(s: Speed): void;
   selectEclipse(id: string): void;
   jumpToNext(type?: EclipseType): void;
@@ -96,6 +98,13 @@ export const useEclipseStore = create<EclipseStore>((set, get) => ({
   play: () => set({ baseSimMs: simTimeOf(get()), basePerfMs: performance.now() }),
   pause: () => set({ baseSimMs: simTimeOf(get()), basePerfMs: null }),
   togglePlay: () => (get().basePerfMs === null ? get().play() : get().pause()),
+
+  replayEclipse: () =>
+    set((s) => ({
+      baseSimMs: s.fineWindow.startMs,
+      basePerfMs: performance.now(),
+      speed: 600 as Speed,
+    })),
 
   // Re-anchor so changing speed never jumps the current instant.
   setSpeed: (speed) =>

@@ -133,6 +133,7 @@ export function HUD() {
 
         {showContours && (
           <div className="legend panel" title="Fraction of the Sun's disc covered">
+            <span className="legend__title">Sun coverage</span>
             {(["100", "75", "50", "25"] as const).map((lv) => (
               <span key={lv} className={`legend__item legend__item--${lv}`}>
                 <span className="legend__swatch" /> {lv}%

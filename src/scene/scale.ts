@@ -12,4 +12,4 @@ export const MOON_DISPLAY_DIST = 10.0;
 export const SUN_DISPLAY_DIST = 60.0;
 export const SUN_DISPLAY_R = 6.0;
 
-export const CAMERA_WIDE: [number, number, number] = [0, 6, 16];
+export const CAMERA_WIDE: [number, number, number] = [0, 2.1, 5.6]; // distance ~6
