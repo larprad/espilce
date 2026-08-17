@@ -276,6 +276,10 @@
   color-scheme: dark;
 }
 
+.datetime--time-only {
+  display: none;
+}
+
 .datetime:focus {
   outline: none;
   border-color: rgba(110, 168, 255, 0.5);
@@ -319,9 +323,9 @@
 .picker-arrow {
   display: flex;
   align-items: center;
-  padding: 0 12px;
-  font-size: 22px;
-  line-height: 1;
+  justify-content: center;
+  width: 44px;
+  padding: 0;
   color: var(--text-2);
   background: var(--panel);
   backdrop-filter: var(--blur-panel);
@@ -701,6 +705,11 @@
   }
 
   .datetime {
+    display: none;
+  }
+
+  .datetime--time-only {
+    display: block;
     font-size: var(--fs-xs);
     padding: 6px 8px;
   }

@@ -107,6 +107,20 @@ export function TimeControls() {
           }}
           aria-label={`Simulation date and time (${zoneLabel(utc)})`}
         />
+        {/* Mobile: hour-only input (the date is implied by the eclipse; CSS
+            swaps this with the full datetime field). */}
+        <input
+          className="datetime datetime--time-only"
+          type="time"
+          step={1}
+          value={toDatetimeInput(timeMs, utc).slice(11, 19)}
+          onChange={(e) => {
+            const v = e.target.value.length === 5 ? `${e.target.value}:00` : e.target.value;
+            const ms = fromDatetimeInput(`${toDatetimeInput(timeMs, utc).slice(0, 10)}T${v}`, utc);
+            if (Number.isFinite(ms)) setTime(ms);
+          }}
+          aria-label={`Simulation time (${zoneLabel(utc)})`}
+        />
         <div className="speed-group" role="group" aria-label="Timezone">
           <button
             className={`btn btn--speed ${!utc ? "is-active" : ""}`}

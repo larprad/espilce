@@ -11,6 +11,38 @@ const PRESETS: Array<[CameraPreset, string, string]> = [
   ["moon", "Moon", "Follow the Moon"],
 ];
 
+/* SVG chevrons — text glyphs sit on the font baseline and never center. */
+const ChevronLeft = () => (
+  <svg
+    width="16"
+    height="16"
+    viewBox="0 0 16 16"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="1.8"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+    aria-hidden="true"
+  >
+    <path d="M10 3 5 8l5 5" />
+  </svg>
+);
+const ChevronRight = () => (
+  <svg
+    width="16"
+    height="16"
+    viewBox="0 0 16 16"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="1.8"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+    aria-hidden="true"
+  >
+    <path d="M6 3l5 5-5 5" />
+  </svg>
+);
+
 /**
  * Isolated so its 8 Hz useSimTime tick re-renders only this button — putting
  * it in HUD made the whole tree (incl. the 680-row catalog) reconcile during
@@ -82,7 +114,7 @@ export function HUD() {
             onClick={() => jumpToPrev()}
             title="Previous eclipse (Shift+←)"
           >
-            ‹
+            <ChevronLeft />
           </button>
           <EclipseStatus />
           <button
@@ -90,7 +122,7 @@ export function HUD() {
             onClick={() => jumpToNext()}
             title="Next eclipse (Shift+→)"
           >
-            ›
+            <ChevronRight />
           </button>
         </div>
       </div>
