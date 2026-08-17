@@ -9,7 +9,6 @@ import { TimeControls } from "./TimeControls";
 const PRESETS: Array<[CameraPreset, string, string]> = [
   ["earth", "Earth", "Center on Earth (click again to recenter)"],
   ["moon", "Moon", "Follow the Moon"],
-  ["sun", "Sun", "Look at the Sun — during a solar eclipse the Moon crosses it"],
 ];
 
 /**

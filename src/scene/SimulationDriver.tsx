@@ -10,6 +10,7 @@ import { CAMERA_WIDE, MOON_DISPLAY_DIST, SUN_DISPLAY_DIST } from "./scale";
 import { sceneRefs } from "./sceneRefs";
 
 const _dir = new Vector3();
+const _perp = new Vector3();
 const _target = new Vector3();
 const _axis = new Vector3();
 const _prevLock = new Vector3(); // zero-length = lock not engaged
@@ -72,23 +73,33 @@ export function SimulationDriver() {
             c.setLookAt(_dir.x * 2.6, _dir.y * 2.6, _dir.z * 2.6, _dir.x, _dir.y, _dir.z, true);
           }
         } else if (state.cameraPreset === "moon") {
-          // Between Earth and Moon, looking at the Moon's near side — during
-          // a lunar eclipse that's the face that turns red (the far side is
-          // simply night). Slightly above the line so Earth doesn't block.
-          const gs = computeGeoState(getSimTimeMs());
-          _dir.copy(gs.moonKm).normalize().multiplyScalar(MOON_DISPLAY_DIST);
-          c.setLookAt(_dir.x * 0.55, _dir.y * 0.55 + 1.4, _dir.z * 0.55, _dir.x, _dir.y, _dir.z, true);
-        } else {
-          // On the Earth–Sun line, 8 units sunward, looking at the Sun. The
-          // Moon orbits at 10 display units, so during a solar eclipse its
-          // dark disc (~2 units ahead) covers the Sun like the real thing.
-          const gs = computeGeoState(getSimTimeMs());
-          _dir.copy(gs.sunKm).normalize();
-          c.setLookAt(
-            _dir.x * 8, _dir.y * 8 + 0.15, _dir.z * 8,
-            _dir.x * SUN_DISPLAY_DIST, _dir.y * SUN_DISPLAY_DIST, _dir.z * SUN_DISPLAY_DIST,
-            true,
-          );
+          const t = getSimTimeMs();
+          const gs = computeGeoState(t);
+          const e = activeEclipse(t, state.selectedEclipseId);
+          _dir.copy(gs.moonKm).normalize();
+          if (e?.type === "solar") {
+            // During a solar eclipse the Moon's lit face points at the Sun,
+            // away from Earth — so view from beyond the Moon on the sunward
+            // side, looking back: lit Moon in the foreground, Earth with the
+            // eclipse shadow behind it (~12 deg apart, both in frame).
+            _perp.set(_dir.z, 0, -_dir.x).normalize();
+            c.setLookAt(
+              _dir.x * 14 + _perp.x * 1.3,
+              _dir.y * 14 + 0.5,
+              _dir.z * 14 + _perp.z * 1.3,
+              _dir.x * MOON_DISPLAY_DIST,
+              _dir.y * MOON_DISPLAY_DIST,
+              _dir.z * MOON_DISPLAY_DIST,
+              true,
+            );
+          } else {
+            // Between Earth and Moon, looking at the Moon's near side —
+            // during a lunar eclipse that's the face that turns red (the
+            // far side is simply night). Slightly above the line so Earth
+            // doesn't block.
+            _dir.multiplyScalar(MOON_DISPLAY_DIST);
+            c.setLookAt(_dir.x * 0.55, _dir.y * 0.55 + 1.4, _dir.z * 0.55, _dir.x, _dir.y, _dir.z, true);
+          }
         }
       }),
     [],
@@ -152,8 +163,6 @@ export function SimulationDriver() {
       }
     } else if (c && state.cameraPreset === "moon" && moonGroup) {
       c.setTarget(moonGroup.position.x, moonGroup.position.y, moonGroup.position.z, false);
-    } else if (c && state.cameraPreset === "sun" && sunMesh) {
-      c.setTarget(sunMesh.position.x, sunMesh.position.y, sunMesh.position.z, false);
     } else if (c && state.cameraPreset === "earth") {
       c.setTarget(0, 0, 0, false);
     }

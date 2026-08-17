@@ -49,15 +49,16 @@ npm run dev
 - **Drag** to orbit, **scroll** to zoom — both scale with altitude, so close-up
   navigation stays gentle. Zoom in far enough and city dots, then names, fade in.
 - **Space** — play/pause. **Shift+←/→** — previous/next eclipse.
-- **Earth / Moon / Sun** — camera presets. Earth re-centers on a second click; the Sun
-  view sits on the Earth–Sun line, so during a solar eclipse the Moon crosses the disc.
+- **Eclipse / Earth / Moon** — camera presets. Eclipse locks on the ongoing event;
+  Earth re-centers on a second click; during a selected solar eclipse the Moon view
+  shows the lit Moon in front of the eclipse-shadowed Earth.
 - Times are shown in **your local timezone** by default (that's how you remember an
   eclipse); a toggle in the dock switches everything to UTC.
 - Pick an eclipse in the **Catalog** (opens near the current date) to get an hours-scale
   slider with phase marks.
 - **Lines** — live iso-lines of Sun coverage: 25/50/75% and the totality boundary,
   cool-to-hot colors, sweeping with time.
-- **Cities** — the labeled city layer, on by default.
+- **Cities** — the labeled city layer (off by default).
 
 ## Credits
 

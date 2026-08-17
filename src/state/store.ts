@@ -5,7 +5,7 @@ import { MAX_TIME_MS, MIN_TIME_MS, type EclipseType } from "../astro/types";
 export const SPEEDS = [1, 60, 600, 3600, 21600, 86400] as const;
 export type Speed = (typeof SPEEDS)[number];
 
-export type CameraPreset = "eclipse" | "earth" | "moon" | "sun";
+export type CameraPreset = "eclipse" | "earth" | "moon";
 
 interface FineWindow {
   startMs: number;

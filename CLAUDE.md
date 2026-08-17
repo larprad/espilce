@@ -75,7 +75,7 @@ Derived-time model: `simTime = baseSimMs + (performance.now() − basePerfMs)·s
 - drei `CameraControls` (camera-controls lib), `makeDefault`.
 - Presets earth/moon/sun: on click (or eclipse selection) a smooth `setLookAt` flight;
   **every preset pins its orbit target every frame** (`setTarget`, no transition) — Earth
-  to the origin, Moon/Sun to the moving body — so interrupted flights can never leave the
+  to the origin, Moon to the moving body — so interrupted flights can never leave the
   camera orbiting the wrong point. `cameraPresetSeq` bumps on every click so re-clicking
   the active preset re-aims (Earth doubles as "recenter").
 - Altitude-proportional feel: `dollySpeed = azimuthRotateSpeed = polarRotateSpeed =
@@ -116,7 +116,7 @@ ours; depth-testing billboards against the sphere clips them).
 
 One job per region: **top-left** = which eclipse (status badge + Prev/Catalog/Next; the
 catalog drawer slides from the left, auto-scrolled near the current date); **top-right** =
-view options (Earth/Moon/Sun ‖ Lines/Cities/?; the Lines legend is structurally attached
+view options (Eclipse/Earth/Moon ‖ Lines/Cities/?; the Lines legend is structurally attached
 under this bar); **bottom dock** = time (play, datetime with seconds — totality can last
 <60 s — timezone toggle, speeds, coarse/fine sliders).
 
