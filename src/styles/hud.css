@@ -30,10 +30,30 @@
   user-select: none;
 }
 
-.hud__top-right {
+/* Groups the view-buttons cluster with the dock. On desktop it vanishes
+   from layout (display: contents) so both keep their absolute positions;
+   on mobile it becomes a bottom-anchored column so the gap between the
+   cluster and the time controls is a fixed rhythm, not a magic offset. */
+.hud__bottom-stack {
+  display: contents;
+  pointer-events: none;
+}
+
+.hud__bottom-stack > * {
+  pointer-events: auto;
+}
+
+.hud__top-right-wrap {
   position: absolute;
   top: var(--sp-4);
   right: var(--sp-4);
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: var(--sp-2);
+}
+
+.hud__top-right {
   display: flex;
   align-items: center;
   gap: var(--sp-2);
@@ -185,20 +205,43 @@
   overflow: hidden;
 }
 
+/* Mobile replacement for the speed buttons — hidden on desktop. */
+.speed-select {
+  display: none;
+  font-family: var(--font-ui);
+  font-size: var(--fs-s);
+  color: var(--text-1);
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-s);
+  padding: 6px 8px;
+  color-scheme: dark;
+}
+
 .speed-group .btn {
   border-radius: 0;
   padding: 5px 10px;
   font-size: var(--fs-xs);
 }
 
-.jump-group {
+.eclipse-nav {
   display: flex;
   gap: var(--sp-1);
-  margin-left: auto;
 }
 
-.jump-group .btn {
+.eclipse-nav .btn {
   border: 1px solid var(--border);
+  background: var(--panel);
+  backdrop-filter: var(--blur-panel);
+  -webkit-backdrop-filter: var(--blur-panel);
+}
+
+.eclipse-nav .btn:hover {
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.eclipse-nav .btn.is-active {
+  background: var(--accent-ui-dim);
 }
 
 /* ---------- Sliders ---------- */
@@ -306,16 +349,15 @@
 
 .catalog {
   position: absolute;
-  top: var(--sp-4);
-  right: var(--sp-4);
+  top: 168px; /* below brand + status badge + eclipse-nav row */
+  left: var(--sp-4);
   bottom: 108px;
   width: 400px;
   max-width: calc(100vw - 2 * var(--sp-4));
   display: flex;
   flex-direction: column;
-  transform: translateX(calc(100% + var(--sp-5)));
+  transform: translateX(calc(-100% - var(--sp-5) - var(--sp-4)));
   transition: transform var(--transition-med);
-  margin-top: 52px;
 }
 
 .catalog.is-open {
@@ -406,9 +448,6 @@
 /* ---------- Contours legend ---------- */
 
 .legend {
-  position: absolute;
-  right: var(--sp-4);
-  top: 72px;
   display: flex;
   align-items: center;
   gap: var(--sp-3);
@@ -502,19 +541,84 @@
 /* ---------- Small screens ---------- */
 
 @media (max-width: 720px) {
-  .hud__top-right {
-    top: auto;
-    bottom: 190px;
+  .brand {
+    display: none;
+  }
+
+  .status {
+    padding: var(--sp-2) var(--sp-3);
+    max-width: calc(100vw - 2 * var(--sp-4));
+  }
+
+  /* Cluster + dock become one bottom-anchored column with a fixed gap. */
+  .hud__bottom-stack {
+    display: flex;
+    position: absolute;
+    left: var(--sp-2);
     right: var(--sp-2);
-    flex-wrap: wrap;
-    max-width: 60vw;
+    bottom: max(var(--sp-2), env(safe-area-inset-bottom));
+    flex-direction: column;
+    align-items: flex-end;
+    gap: var(--sp-3);
+  }
+
+  .hud__top-right-wrap {
+    position: static;
+    flex-direction: column-reverse;
+  }
+
+  /* Compact one-line view bar: Earth | Moon | Sun ‖ Lines | Cities | ? */
+  .hud__top-right {
+    gap: var(--sp-1);
+    padding: 6px;
+  }
+
+  .hud__top-right .btn {
+    padding: 5px 8px;
+    font-size: var(--fs-xs);
+  }
+
+  .hud__top-right .hud__divider {
+    margin: 0 2px;
+  }
+
+  /* Simplified dock: play + datetime + speed select, then the slider. */
+  .speed-group {
+    display: none; /* hides both the speed buttons and the timezone toggle */
+  }
+
+  .speed-select {
+    display: block;
+  }
+
+  .datetime {
+    font-size: var(--fs-xs);
+    padding: 6px 8px;
+  }
+
+  .slider-label {
+    display: none;
   }
 
   .dock {
-    bottom: var(--sp-2);
+    position: static;
+    transform: none;
+    width: 100%;
+    align-self: stretch;
+    padding: var(--sp-2) var(--sp-3);
   }
 
-  .jump-group {
-    margin-left: 0;
+  .catalog {
+    top: 132px;
+    bottom: 200px;
+    left: var(--sp-2);
+    width: calc(100vw - 2 * var(--sp-2));
+  }
+
+  .about {
+    top: auto;
+    bottom: 230px;
+    right: var(--sp-2);
+    width: calc(100vw - 2 * var(--sp-2));
   }
 }

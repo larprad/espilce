@@ -20,7 +20,7 @@ export function TimeControls() {
   const speed = useEclipseStore((s) => s.speed);
   const fineWindow = useEclipseStore((s) => s.fineWindow);
   const utc = useEclipseStore((s) => s.timeDisplay === "utc");
-  const { togglePlay, setSpeed, setTime, jumpToPrev, jumpToNext, selectEclipse, setTimeDisplay } =
+  const { togglePlay, setSpeed, setTime, selectEclipse, setTimeDisplay } =
     useEclipseStore.getState();
 
   return (
@@ -74,15 +74,20 @@ export function TimeControls() {
             </button>
           ))}
         </div>
+        {/* Mobile replacement for the speed buttons (CSS swaps them). */}
+        <select
+          className="speed-select"
+          value={speed}
+          onChange={(e) => setSpeed(Number(e.target.value) as Speed)}
+          aria-label="Playback speed"
+        >
+          {SPEEDS.map((s) => (
+            <option key={s} value={s}>
+              {SPEED_LABELS[s]}
+            </option>
+          ))}
+        </select>
 
-        <div className="jump-group">
-          <button className="btn" onClick={() => jumpToPrev()} title="Previous eclipse (←)">
-            ‹ Prev eclipse
-          </button>
-          <button className="btn" onClick={() => jumpToNext()} title="Next eclipse (→)">
-            Next eclipse ›
-          </button>
-        </div>
       </div>
 
       {fineWindow ? (

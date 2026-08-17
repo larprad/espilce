@@ -48,9 +48,25 @@ export function HUD() {
       <div className="hud__top-left">
         <div className="brand">ESPILCE</div>
         <EclipseStatus />
+        <div className="eclipse-nav" role="group" aria-label="Eclipse navigation">
+          <button className="btn" onClick={() => jumpToPrev()} title="Previous eclipse (Shift+←)">
+            ‹ Prev
+          </button>
+          <button
+            className={`btn ${catalogOpen ? "is-active" : ""}`}
+            onClick={() => setCatalogOpen(!catalogOpen)}
+          >
+            Catalog
+          </button>
+          <button className="btn" onClick={() => jumpToNext()} title="Next eclipse (Shift+→)">
+            Next ›
+          </button>
+        </div>
       </div>
 
-      <div className="hud__top-right panel">
+      <div className="hud__bottom-stack">
+      <div className="hud__top-right-wrap">
+        <div className="hud__top-right panel">
         <div className="preset-group" role="group" aria-label="Camera">
           {PRESETS.map(([id, label, hint]) => (
             <button
@@ -78,15 +94,22 @@ export function HUD() {
         >
           Cities
         </button>
-        <button
-          className={`btn ${catalogOpen ? "is-active" : ""}`}
-          onClick={() => setCatalogOpen(!catalogOpen)}
-        >
-          Catalog
-        </button>
         <button className="btn btn--icon" onClick={() => setAboutOpen(!aboutOpen)} title="About">
           ?
         </button>
+        </div>
+
+        {showContours && (
+          <div className="legend panel" title="Fraction of the Sun's disc covered">
+            {(["100", "75", "50", "25"] as const).map((lv) => (
+              <span key={lv} className={`legend__item legend__item--${lv}`}>
+                <span className="legend__swatch" /> {lv}%
+              </span>
+            ))}
+          </div>
+        )}
+      </div>
+      <TimeControls />
       </div>
 
       {aboutOpen && (
@@ -127,18 +150,7 @@ export function HUD() {
         </div>
       )}
 
-      {showContours && (
-        <div className="legend panel" title="Fraction of the Sun's disc covered">
-          {(["100", "75", "50", "25"] as const).map((lv) => (
-            <span key={lv} className={`legend__item legend__item--${lv}`}>
-              <span className="legend__swatch" /> {lv}%
-            </span>
-          ))}
-        </div>
-      )}
-
       <CatalogPanel />
-      <TimeControls />
     </div>
   );
 }
