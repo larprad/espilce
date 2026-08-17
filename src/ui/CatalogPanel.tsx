@@ -19,12 +19,12 @@ export const CatalogPanel = memo(function CatalogPanel() {
   const events = filter === "all" ? CATALOG : CATALOG.filter((e) => e.type === filter);
 
   // Keep the selected row in view when the drawer opens or selection moves;
-  // with nothing selected (or the selection filtered out), center on the
-  // event nearest the current simulation date within the filtered list.
+  // if the selection is filtered out, center on the event nearest the
+  // current simulation date within the filtered list.
   useEffect(() => {
     if (!open) return;
     let targetId = selectedId;
-    if (!targetId || !listRef.current?.querySelector(`[data-id="${targetId}"]`)) {
+    if (!listRef.current?.querySelector(`[data-id="${targetId}"]`)) {
       const t = getSimTimeMs();
       const nearest =
         filter === "all"
@@ -62,7 +62,10 @@ export const CatalogPanel = memo(function CatalogPanel() {
             key={e.id}
             data-id={e.id}
             className={`row ${selectedId === e.id ? "is-selected" : ""}`}
-            onClick={() => selectEclipse(e.id)}
+            onClick={() => {
+              selectEclipse(e.id);
+              setCatalogOpen(false); // picker behavior: choose and close
+            }}
           >
             <span className="row__date">{fmtDate(e.peakMs, utc)}</span>
             <span className={`chip chip--${e.type}`}>{e.type}</span>

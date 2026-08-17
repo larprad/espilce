@@ -16,9 +16,7 @@ export function FineSlider() {
   const window = useEclipseStore((s) => s.fineWindow);
   const selectedId = useEclipseStore((s) => s.selectedEclipseId);
   const utc = useEclipseStore((s) => s.timeDisplay === "utc");
-  const eclipse = selectedId ? getEclipse(selectedId) : undefined;
-
-  if (!window || !eclipse) return null;
+  const eclipse = getEclipse(selectedId)!;
 
   const marks: Mark[] = [{ ms: eclipse.peakMs, label: "Peak", major: true }];
   if (eclipse.type === "lunar") {

@@ -86,8 +86,10 @@ Derived-time model: `simTime = baseSimMs + (performance.now() − basePerfMs)·s
   Moon for lunar); the camera rotates around Earth with the sweeping shadow each frame
   (position hard-set gated on `!controls.active`), auto-reverts to Earth when the
   eclipse window ends. Button enabled via `activeEclipse()` (catalog.ts).
-  **Selecting an eclipse (catalog / Prev / Next) switches to this lock automatically**
-  so the phenomenon is always in view.
+  **Selecting an eclipse switches to this lock automatically** so the phenomenon is
+  always in view. An eclipse is ALWAYS selected (store initializes with the nearest to
+  now, without moving time or camera); the top-left badge toggles the catalog drawer and
+  is flanked by prev/next arrows — there is no separate Catalog button or deselect.
 
 ## Data (committed, regenerated manually)
 
@@ -114,21 +116,21 @@ ours; depth-testing billboards against the sphere clips them).
 
 ## UI layout ([HUD.tsx](src/ui/HUD.tsx), [hud.css](src/styles/hud.css))
 
-One job per region: **top-left** = which eclipse (status badge + Prev/Catalog/Next; the
-catalog drawer slides from the left, auto-scrolled near the current date); **top-right** =
-view options (Eclipse/Earth/Moon ‖ Lines/Cities/?; the Lines legend is structurally attached
-under this bar); **bottom dock** = time (play, datetime with seconds — totality can last
-<60 s — timezone toggle, speeds, coarse/fine sliders).
+Stage layout, same structure on desktop and mobile: **top-left** = brand only;
+**top-center** = the eclipse picker `‹ [badge ▾] ›` — an eclipse is always selected, the
+badge click opens the catalog as a centered dropdown beneath it (auto-scrolled to the
+selection, closes on pick); **bottom stack** (`.hud__bottom-stack`, one flex column on
+all widths) = Lines legend, then the view bar (Eclipse/Earth/Moon ‖ Lines/Cities/?),
+then the time dock (play, datetime with seconds — totality can last <60 s — timezone
+toggle, speeds, the event fine-slider; there is no coarse timeline slider).
 
 Times display in the viewer's **local timezone by default** (UTC toggle) — users remember
 eclipses in local time; the datetime-local input is fed wall-clock digits per mode
 ([format.ts](src/ui/format.ts)).
 
-Mobile (≤720px): `.hud__bottom-stack` wraps the view bar + dock — `display: contents` on
-desktop (zero layout effect), a bottom-anchored flex column on mobile so the gap is a
-fixed rhythm. The speed buttons swap to a native `<select className="speed-select">`
-(NOTE: renders as a detached mini-popup in Chrome device emulation — known cosmetic
-limitation, pending user verdict on real devices). TZ toggle hidden on mobile.
+Mobile (≤720px) diverges only in compactness: smaller buttons, speed buttons swap to a
+native `<select className="speed-select">` (renders as a detached mini-popup in Chrome
+device emulation — known cosmetic limitation), TZ toggle hidden, bigger slider thumb.
 
 ## Verification anchors (used repeatedly; keep using them)
 

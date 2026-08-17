@@ -1,30 +1,32 @@
-import { getEclipse, nearestEclipse } from "../astro/catalog";
+import { getEclipse } from "../astro/catalog";
 import { useEclipseStore } from "../state/store";
-import { useSimTime } from "../state/useSimTime";
-import { eclipseTitle, fmtCountdown, fmtDateTime } from "./format";
+import { eclipseTitle, fmtDateTime } from "./format";
 
-/** Top-left badge: the selected (or nearest) eclipse and a live countdown. */
+/**
+ * The selected-eclipse badge — the app's navigation hub. Always populated
+ * (an eclipse is always selected); clicking it opens the catalog to pick
+ * another one.
+ */
 export function EclipseStatus() {
-  const timeMs = useSimTime();
   const selectedId = useEclipseStore((s) => s.selectedEclipseId);
-  const selectEclipse = useEclipseStore((s) => s.selectEclipse);
+  const catalogOpen = useEclipseStore((s) => s.catalogOpen);
+  const setCatalogOpen = useEclipseStore((s) => s.setCatalogOpen);
   const utc = useEclipseStore((s) => s.timeDisplay === "utc");
 
-  const eclipse = (selectedId && getEclipse(selectedId)) || nearestEclipse(timeMs);
-  const isSelected = selectedId === eclipse.id;
+  const eclipse = getEclipse(selectedId)!;
 
   return (
     <button
-      className={`status panel ${isSelected ? "is-selected" : ""}`}
-      onClick={() => selectEclipse(isSelected ? null : eclipse.id)}
-      title={isSelected ? "Deselect eclipse" : "Focus this eclipse"}
+      className={`status panel ${catalogOpen ? "is-open" : ""}`}
+      onClick={() => setCatalogOpen(!catalogOpen)}
+      title="Change eclipse"
+      aria-haspopup="listbox"
+      aria-expanded={catalogOpen}
     >
       <span className={`chip chip--${eclipse.type}`}>{eclipse.type}</span>
       <span className="status__body">
         <span className="status__title">{eclipseTitle(eclipse)}</span>
-        <span className="status__meta">
-          {fmtDateTime(eclipse.peakMs, utc)} — {fmtCountdown(timeMs, eclipse.peakMs)}
-        </span>
+        <span className="status__meta">{fmtDateTime(eclipse.peakMs, utc)}</span>
       </span>
     </button>
   );

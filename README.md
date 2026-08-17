@@ -54,8 +54,9 @@ npm run dev
   shows the lit Moon in front of the eclipse-shadowed Earth.
 - Times are shown in **your local timezone** by default (that's how you remember an
   eclipse); a toggle in the dock switches everything to UTC.
-- Pick an eclipse in the **Catalog** (opens near the current date) to get an hours-scale
-  slider with phase marks.
+- The top-left **eclipse badge** is the navigation hub: an eclipse is always selected;
+  click the badge to pick another from the catalog, or step with the arrows beside it.
+  The dock shows an hours-scale slider spanning the selected event.
 - **Lines** — live iso-lines of Sun coverage: 25/50/75% and the totality boundary,
   cool-to-hot colors, sweeping with time.
 - **Cities** — the labeled city layer (off by default).

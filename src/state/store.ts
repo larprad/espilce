@@ -1,5 +1,5 @@
 import { create } from "zustand";
-import { getEclipse, nextEclipse, prevEclipse } from "../astro/catalog";
+import { getEclipse, nearestEclipse, nextEclipse, prevEclipse } from "../astro/catalog";
 import { MAX_TIME_MS, MIN_TIME_MS, type EclipseType } from "../astro/types";
 
 export const SPEEDS = [1, 60, 600, 3600, 21600, 86400] as const;
@@ -22,8 +22,9 @@ interface EclipseStore {
   basePerfMs: number | null;
   speed: Speed;
 
-  selectedEclipseId: string | null;
-  fineWindow: FineWindow | null;
+  /** An eclipse is ALWAYS selected (initialized to the one nearest "now"). */
+  selectedEclipseId: string;
+  fineWindow: FineWindow;
   cameraPreset: CameraPreset;
   /** Bumped on every setCameraPreset call, so re-clicking the active preset re-aims. */
   cameraPresetSeq: number;
@@ -42,7 +43,7 @@ interface EclipseStore {
   pause(): void;
   togglePlay(): void;
   setSpeed(s: Speed): void;
-  selectEclipse(id: string | null): void;
+  selectEclipse(id: string): void;
   jumpToNext(type?: EclipseType): void;
   jumpToPrev(type?: EclipseType): void;
   setCameraPreset(p: CameraPreset): void;
@@ -60,9 +61,8 @@ export function simTimeOf(s: Pick<EclipseStore, "baseSimMs" | "basePerfMs" | "sp
   return clampTime(s.baseSimMs + (performance.now() - s.basePerfMs) * s.speed);
 }
 
-function fineWindowFor(id: string): FineWindow | null {
-  const e = getEclipse(id);
-  if (!e) return null;
+function fineWindowFor(id: string): FineWindow {
+  const e = getEclipse(id)!;
   const halfMs =
     e.type === "solar"
       ? 4 * 3600_000
@@ -70,13 +70,15 @@ function fineWindowFor(id: string): FineWindow | null {
   return { startMs: e.peakMs - halfMs, endMs: e.peakMs + halfMs };
 }
 
+const initialEclipseId = nearestEclipse(clampTime(Date.now())).id;
+
 export const useEclipseStore = create<EclipseStore>((set, get) => ({
   baseSimMs: clampTime(Date.now()),
   basePerfMs: null,
   speed: 3600,
 
-  selectedEclipseId: null,
-  fineWindow: null,
+  selectedEclipseId: initialEclipseId,
+  fineWindow: fineWindowFor(initialEclipseId),
   cameraPreset: "earth",
   cameraPresetSeq: 0,
   showContours: true,
@@ -104,10 +106,6 @@ export const useEclipseStore = create<EclipseStore>((set, get) => ({
     })),
 
   selectEclipse: (id) => {
-    if (id === null) {
-      set({ selectedEclipseId: null, fineWindow: null });
-      return;
-    }
     const e = getEclipse(id);
     if (!e) return;
     set((s) => ({
@@ -124,20 +122,24 @@ export const useEclipseStore = create<EclipseStore>((set, get) => ({
     }));
   },
 
-  // When an eclipse is already selected, step relative to ITS peak — the
-  // sim time sits 45 min before peak after selection, so searching from the
-  // sim time would find the same eclipse again and "next" would stick.
+  // Step relative to the selected eclipse's peak only while the sim time is
+  // inside its window (selection lands at peak - 45 min, so stepping from the
+  // sim time there would re-find the same event). If the user scrubbed far
+  // away, step from the sim time — the arrows move relative to where the
+  // user is looking.
   jumpToNext: (type) => {
     const s = get();
-    const sel = s.selectedEclipseId ? getEclipse(s.selectedEclipseId) : undefined;
-    const fromMs = sel ? Math.max(sel.peakMs, simTimeOf(s)) : simTimeOf(s);
+    const t = simTimeOf(s);
+    const within = t >= s.fineWindow.startMs && t <= s.fineWindow.endMs;
+    const fromMs = within ? Math.max(getEclipse(s.selectedEclipseId)!.peakMs, t) : t;
     const e = nextEclipse(fromMs + 1000, type);
     if (e) s.selectEclipse(e.id);
   },
   jumpToPrev: (type) => {
     const s = get();
-    const sel = s.selectedEclipseId ? getEclipse(s.selectedEclipseId) : undefined;
-    const fromMs = sel ? Math.min(sel.peakMs, simTimeOf(s)) : simTimeOf(s);
+    const t = simTimeOf(s);
+    const within = t >= s.fineWindow.startMs && t <= s.fineWindow.endMs;
+    const fromMs = within ? Math.min(getEclipse(s.selectedEclipseId)!.peakMs, t) : t;
     const e = prevEclipse(fromMs - 1000, type);
     if (e) s.selectEclipse(e.id);
   },

@@ -42,13 +42,11 @@ export function HUD() {
   const cameraPreset = useEclipseStore((s) => s.cameraPreset);
   const showContours = useEclipseStore((s) => s.showContours);
   const showCities = useEclipseStore((s) => s.showCities);
-  const catalogOpen = useEclipseStore((s) => s.catalogOpen);
   const [aboutOpen, setAboutOpen] = useState(false);
   const {
     setCameraPreset,
     setShowContours,
     setShowCities,
-    setCatalogOpen,
     togglePlay,
     jumpToPrev,
     jumpToNext,
@@ -75,19 +73,24 @@ export function HUD() {
     <div className="hud">
       <div className="hud__top-left">
         <div className="brand">ESPILCE</div>
-        <EclipseStatus />
-        <div className="eclipse-nav" role="group" aria-label="Eclipse navigation">
-          <button className="btn" onClick={() => jumpToPrev()} title="Previous eclipse (Shift+←)">
-            ‹ Prev
-          </button>
+      </div>
+
+      <div className="hud__top-center">
+        <div className="eclipse-picker" role="group" aria-label="Eclipse picker">
           <button
-            className={`btn ${catalogOpen ? "is-active" : ""}`}
-            onClick={() => setCatalogOpen(!catalogOpen)}
+            className="picker-arrow"
+            onClick={() => jumpToPrev()}
+            title="Previous eclipse (Shift+←)"
           >
-            Catalog
+            ‹
           </button>
-          <button className="btn" onClick={() => jumpToNext()} title="Next eclipse (Shift+→)">
-            Next ›
+          <EclipseStatus />
+          <button
+            className="picker-arrow"
+            onClick={() => jumpToNext()}
+            title="Next eclipse (Shift+→)"
+          >
+            ›
           </button>
         </div>
       </div>

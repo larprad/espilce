@@ -15,10 +15,13 @@
   position: absolute;
   top: var(--sp-4);
   left: var(--sp-4);
-  display: flex;
-  flex-direction: column;
-  gap: var(--sp-3);
-  align-items: flex-start;
+}
+
+.hud__top-center {
+  position: absolute;
+  top: var(--sp-4);
+  left: 50%;
+  transform: translateX(-50%);
 }
 
 .brand {
@@ -30,12 +33,18 @@
   user-select: none;
 }
 
-/* Groups the view-buttons cluster with the dock. On desktop it vanishes
-   from layout (display: contents) so both keep their absolute positions;
-   on mobile it becomes a bottom-anchored column so the gap between the
-   cluster and the time controls is a fixed rhythm, not a magic offset. */
+/* All controls live in one bottom-anchored column: legend (when on), view
+   bar, then the time dock — same structure on desktop and mobile. */
 .hud__bottom-stack {
-  display: contents;
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  bottom: max(var(--sp-4), env(safe-area-inset-bottom));
+  width: min(980px, calc(100% - 2 * var(--sp-4)));
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--sp-2);
   pointer-events: none;
 }
 
@@ -43,13 +52,11 @@
   pointer-events: auto;
 }
 
+/* View cluster: column-reverse so the legend stacks above the button bar. */
 .hud__top-right-wrap {
-  position: absolute;
-  top: var(--sp-4);
-  right: var(--sp-4);
   display: flex;
-  flex-direction: column;
-  align-items: flex-end;
+  flex-direction: column-reverse;
+  align-items: center;
   gap: var(--sp-2);
 }
 
@@ -133,17 +140,14 @@
   display: flex;
   align-items: center;
   gap: var(--sp-3);
-  padding: var(--sp-3) var(--sp-4);
+  padding: 14px 24px;
+  min-width: 320px;
   text-align: left;
   transition: border-color var(--transition-fast);
 }
 
 .status:hover {
   border-color: var(--border-strong);
-}
-
-.status.is-selected {
-  border-color: rgba(110, 168, 255, 0.45);
 }
 
 .status__body {
@@ -153,7 +157,7 @@
 }
 
 .status__title {
-  font-size: var(--fs-m);
+  font-size: 16px;
   font-weight: 600;
   color: var(--text-1);
 }
@@ -167,11 +171,7 @@
 /* ---------- Bottom dock ---------- */
 
 .dock {
-  position: absolute;
-  left: 50%;
-  bottom: var(--sp-4);
-  transform: translateX(-50%);
-  width: min(980px, calc(100% - 2 * var(--sp-4)));
+  width: 100%;
   padding: var(--sp-3) var(--sp-4);
   display: flex;
   flex-direction: column;
@@ -231,24 +231,38 @@
   font-size: var(--fs-xs);
 }
 
-.eclipse-nav {
+/* ---------- Eclipse picker (badge + prev/next arrows) ---------- */
+
+.eclipse-picker {
   display: flex;
-  gap: var(--sp-1);
+  align-items: stretch;
+  gap: var(--sp-2);
 }
 
-.eclipse-nav .btn {
-  border: 1px solid var(--border);
+.picker-arrow {
+  display: flex;
+  align-items: center;
+  padding: 0 12px;
+  font-size: 22px;
+  line-height: 1;
+  color: var(--text-2);
   background: var(--panel);
   backdrop-filter: var(--blur-panel);
   -webkit-backdrop-filter: var(--blur-panel);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-m);
+  transition: color var(--transition-fast), background var(--transition-fast),
+    border-color var(--transition-fast);
 }
 
-.eclipse-nav .btn:hover {
+.picker-arrow:hover {
+  color: var(--text-1);
   background: rgba(255, 255, 255, 0.08);
+  border-color: var(--border-strong);
 }
 
-.eclipse-nav .btn.is-active {
-  background: var(--accent-ui-dim);
+.status.is-open {
+  border-color: rgba(110, 168, 255, 0.45);
 }
 
 /* ---------- Sliders ---------- */
@@ -354,21 +368,26 @@
 
 /* ---------- Catalog drawer ---------- */
 
+/* Centered dropdown under the eclipse badge. */
 .catalog {
   position: absolute;
-  top: 168px; /* below brand + status badge + eclipse-nav row */
-  left: var(--sp-4);
-  bottom: 108px;
-  width: 400px;
-  max-width: calc(100vw - 2 * var(--sp-4));
+  top: 92px; /* below the centered picker row */
+  left: 50%;
+  bottom: 230px; /* clear of the bottom control stack */
+  width: 420px;
+  max-width: calc(100vw - 2 * var(--sp-2));
   display: flex;
   flex-direction: column;
-  transform: translateX(calc(-100% - var(--sp-5) - var(--sp-4)));
-  transition: transform var(--transition-med);
+  opacity: 0;
+  pointer-events: none;
+  transform: translate(-50%, -10px);
+  transition: opacity var(--transition-med), transform var(--transition-med);
 }
 
 .catalog.is-open {
-  transform: translateX(0);
+  opacity: 1;
+  pointer-events: auto;
+  transform: translate(-50%, 0);
 }
 
 .catalog__header {
@@ -491,9 +510,10 @@
 
 .about {
   position: absolute;
-  top: 64px;
-  right: var(--sp-4);
-  width: 360px;
+  bottom: 230px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 380px;
   max-width: calc(100vw - 2 * var(--sp-4));
   padding: var(--sp-4) var(--sp-5);
   display: flex;
@@ -552,30 +572,27 @@
     display: none;
   }
 
-  .status {
-    padding: var(--sp-2) var(--sp-3);
-    max-width: calc(100vw - 2 * var(--sp-4));
-  }
-
-  /* Cluster + dock become one bottom-anchored column with a fixed gap. */
-  .hud__bottom-stack {
-    display: flex;
-    position: absolute;
+  .hud__top-center {
     left: var(--sp-2);
     right: var(--sp-2);
+    transform: none;
+  }
+
+  .eclipse-picker {
+    justify-content: center;
+  }
+
+  .status {
+    padding: var(--sp-2) var(--sp-3);
+    max-width: calc(100vw - 116px);
+  }
+
+  .hud__bottom-stack {
+    width: calc(100% - 2 * var(--sp-2));
     bottom: max(var(--sp-2), env(safe-area-inset-bottom));
-    flex-direction: column;
-    align-items: flex-end;
-    gap: var(--sp-3);
   }
 
-  .hud__top-right-wrap {
-    position: static;
-    flex-direction: column-reverse;
-  }
-
-  /* One-line view bar: Earth | Moon | Sun ‖ Lines | Cities | ? — same
-     button scale as the eclipse-nav row for comfortable touch targets. */
+  /* One-line view bar with comfortable touch targets. */
   .hud__top-right {
     gap: var(--sp-1);
     padding: 6px;
@@ -644,24 +661,16 @@
   }
 
   .dock {
-    position: static;
-    transform: none;
-    width: 100%;
-    align-self: stretch;
     padding: var(--sp-2) var(--sp-3);
   }
 
   .catalog {
-    top: 132px;
-    bottom: 200px;
-    left: var(--sp-2);
-    width: calc(100vw - 2 * var(--sp-2));
+    top: 88px;
+    bottom: 210px;
   }
 
   .about {
-    top: auto;
-    bottom: 230px;
-    right: var(--sp-2);
     width: calc(100vw - 2 * var(--sp-2));
+    bottom: 210px;
   }
 }

@@ -1,6 +1,5 @@
 import { SPEEDS, type Speed, useEclipseStore } from "../state/store";
 import { useSimTime } from "../state/useSimTime";
-import { CoarseSlider } from "./CoarseSlider";
 import { FineSlider } from "./FineSlider";
 import { fromDatetimeInput, toDatetimeInput, zoneLabel } from "./format";
 
@@ -32,9 +31,8 @@ export function TimeControls() {
   const timeMs = useSimTime();
   const playing = useEclipseStore((s) => s.basePerfMs !== null);
   const speed = useEclipseStore((s) => s.speed);
-  const fineWindow = useEclipseStore((s) => s.fineWindow);
   const utc = useEclipseStore((s) => s.timeDisplay === "utc");
-  const { togglePlay, setSpeed, setTime, selectEclipse, setTimeDisplay } =
+  const { togglePlay, setSpeed, setTime, setTimeDisplay } =
     useEclipseStore.getState();
 
   return (
@@ -104,22 +102,9 @@ export function TimeControls() {
 
       </div>
 
-      {fineWindow ? (
-        <div className="dock__row">
-          <FineSlider />
-          <button
-            className="btn btn--icon"
-            onClick={() => selectEclipse(null)}
-            title="Back to full 1950–2100 range"
-          >
-            ✕
-          </button>
-        </div>
-      ) : (
-        <div className="dock__row">
-          <CoarseSlider />
-        </div>
-      )}
+      <div className="dock__row">
+        <FineSlider />
+      </div>
     </div>
   );
 }
