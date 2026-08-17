@@ -17,6 +17,7 @@ const fragment = /* glsl */ `
   varying vec2 vUv;
   varying vec3 vDir;
   varying vec3 vViewDir;
+  varying vec3 vGeoPosKm;
 
   ${eclipseCommonGlsl}
 
@@ -27,10 +28,11 @@ const fragment = /* glsl */ `
   }
 
   void main() {
-    vec3 fragPosKm = vDir * R_EARTH_KM; // Earth sits at the real-space origin
+    // True WGS84 surface position — the shadow is evaluated on the real
+    // oblate Earth even though the mesh renders as a sphere.
     vec3 sunDir = normalize(uSunPosKm);
 
-    float coverage = sunCoverage(fragPosKm, uSunPosKm, uMoonPosKm, R_MOON_KM);
+    float coverage = sunCoverage(vGeoPosKm, uSunPosKm, uMoonPosKm, R_MOON_KM);
 
     float ndl = dot(vDir, sunDir);
     float dayness = smoothstep(-0.08, 0.08, ndl);
@@ -69,6 +71,9 @@ const fragment = /* glsl */ `
       float l25 = lineAt(coverage, 0.25);
       float l50 = lineAt(coverage, 0.50);
       float l75 = lineAt(coverage, 0.75);
+      // 0.999 rather than 1.0: the model carries a few-km systematic
+      // under-coverage (spherical-harmonic ephemeris + planar disc overlap),
+      // so a slightly lower threshold tracks the true totality edge best.
       float l100 = lineAt(coverage, 0.999);
       lineColor = C25 * l25 + C50 * l50 + C75 * l75 + C100 * l100;
       lineAlpha = max(max(0.55 * l25, 0.65 * l50), max(0.75 * l75, 0.95 * l100));

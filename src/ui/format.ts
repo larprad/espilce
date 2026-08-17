@@ -62,17 +62,20 @@ export function eclipseTitle(e: EclipseEvent): string {
 const pad = (n: number) => String(n).padStart(2, "0");
 
 /**
- * Value for a datetime-local input. The control is timezone-less; we feed it
- * wall-clock digits in the chosen zone and parse them back symmetrically.
+ * Value for a datetime-local input (seconds included — totality can last
+ * under a minute). The control is timezone-less; we feed it wall-clock
+ * digits in the chosen zone and parse them back symmetrically.
  */
 export function toDatetimeInput(ms: number, utc: boolean): string {
   const d = new Date(ms);
   return utc
-    ? d.toISOString().slice(0, 16)
-    : `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
+    ? d.toISOString().slice(0, 19)
+    : `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`;
 }
 
 export function fromDatetimeInput(value: string, utc: boolean): number {
+  // The control omits ":ss" when seconds are zero; normalize before parsing.
+  const v = value.length === 16 ? `${value}:00` : value;
   // In local mode a bare datetime string parses in the viewer's timezone.
-  return Date.parse(utc ? `${value}:00Z` : value);
+  return Date.parse(utc ? `${v}Z` : v);
 }

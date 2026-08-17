@@ -57,7 +57,7 @@ export function FineSlider() {
           type="range"
           min={window.startMs}
           max={window.endMs}
-          step={30_000}
+          step={5_000}
           value={Math.min(window.endMs, Math.max(window.startMs, timeMs))}
           onChange={(e) => setTime(Number(e.target.value))}
           aria-label="Time within eclipse window"

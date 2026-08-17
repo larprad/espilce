@@ -53,17 +53,26 @@ export const eclipseCommonGlsl = /* glsl */ `
 /**
  * Vertex shader shared by Earth and Moon: standard transform plus the
  * object-space unit direction of the vertex (varying), from which the
- * fragment shader reconstructs the real-space position.
+ * fragment shader reconstructs the real-space position — and, for Earth,
+ * the true WGS84 surface position in km (vGeoPosKm). The sphere mesh is
+ * parameterized by GEODETIC angles (that's what equirect textures and city
+ * coordinates use), so on an oblate Earth the real surface point is NOT
+ * dir * R: at 43 deg latitude the difference is ~20 km — enough to flip a
+ * city in/out of totality at a path edge. Trig-free because the mesh pole
+ * axis is +Y: N = a / sqrt(1 - e^2 sin^2(lat)) with sin(lat) = pm.y.
  */
 export const bodyVertexGlsl = /* glsl */ `
   varying vec2 vUv;
   varying vec3 vDir;      // world-space unit direction from body center
   varying vec3 vViewDir;  // world-space direction fragment -> camera
+  varying vec3 vGeoPosKm; // world-space WGS84 surface position, km (Earth)
 
   void main() {
     vUv = uv;
-    vec3 dir = normalize(mat3(modelMatrix) * normalize(position));
-    vDir = dir;
+    vec3 pm = normalize(position);
+    vDir = normalize(mat3(modelMatrix) * pm);
+    float N = 6378.137 / sqrt(1.0 - 0.00669438 * pm.y * pm.y);
+    vGeoPosKm = mat3(modelMatrix) * vec3(N * pm.x, N * 0.99330562 * pm.y, N * pm.z);
     vec4 worldPos = modelMatrix * vec4(position, 1.0);
     vViewDir = normalize(cameraPosition - worldPos.xyz);
     gl_Position = projectionMatrix * viewMatrix * worldPos;

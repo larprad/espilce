@@ -81,13 +81,17 @@ export function SimulationDriver() {
       moonMaterial.uniforms.uMoonPosKm.value.copy(gs.moonKm);
     }
 
-    // Follow the targeted body: keep the orbit target glued to it (no
-    // transition) — both drift as time scrubs.
+    // Every preset pins its orbit target each frame (no transition): the
+    // Moon/Sun drift as time scrubs, and Earth stays locked to the origin so
+    // an interrupted preset flight can never leave the camera orbiting the
+    // wrong body.
     const c = controlsRef.current;
     if (c && state.cameraPreset === "moon" && moonGroup) {
       c.setTarget(moonGroup.position.x, moonGroup.position.y, moonGroup.position.z, false);
     } else if (c && state.cameraPreset === "sun" && sunMesh) {
       c.setTarget(sunMesh.position.x, sunMesh.position.y, sunMesh.position.z, false);
+    } else if (c && state.cameraPreset === "earth") {
+      c.setTarget(0, 0, 0, false);
     }
 
     // Altitude-proportional controls: dolly steps are multiplicative on the

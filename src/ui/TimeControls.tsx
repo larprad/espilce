@@ -37,6 +37,7 @@ export function TimeControls() {
         <input
           className="datetime"
           type="datetime-local"
+          step={1}
           value={toDatetimeInput(timeMs, utc)}
           min={toDatetimeInput(Date.UTC(1950, 0, 2), utc)}
           max={toDatetimeInput(Date.UTC(2100, 11, 30), utc)}
