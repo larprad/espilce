@@ -5,17 +5,17 @@ import { EclipseStatus } from "./EclipseStatus";
 import { TimeControls } from "./TimeControls";
 
 const PRESETS: Array<[CameraPreset, string, string]> = [
-  ["wide", "Wide", "System overview"],
-  ["sunline", "Sun line", "Look down the Sun–Earth axis"],
+  ["earth", "Earth", "Center on Earth (click again to recenter)"],
   ["moon", "Moon", "Follow the Moon"],
+  ["sun", "Sun", "Look at the Sun — during a solar eclipse the Moon crosses it"],
 ];
 
 export function HUD() {
   const cameraPreset = useEclipseStore((s) => s.cameraPreset);
-  const shadowBoost = useEclipseStore((s) => s.shadowBoost);
+  const showContours = useEclipseStore((s) => s.showContours);
   const catalogOpen = useEclipseStore((s) => s.catalogOpen);
   const [aboutOpen, setAboutOpen] = useState(false);
-  const { setCameraPreset, setShadowBoost, setCatalogOpen, togglePlay, jumpToPrev, jumpToNext } =
+  const { setCameraPreset, setShowContours, setCatalogOpen, togglePlay, jumpToPrev, jumpToNext } =
     useEclipseStore.getState();
 
   useEffect(() => {
@@ -57,11 +57,11 @@ export function HUD() {
         </div>
         <div className="hud__divider" />
         <button
-          className={`btn ${shadowBoost ? "is-active" : ""}`}
-          onClick={() => setShadowBoost(!shadowBoost)}
-          title="Widen the shadow for visibility (not physical)"
+          className={`btn ${showContours ? "is-active" : ""}`}
+          onClick={() => setShowContours(!showContours)}
+          title="Lines where 100/75/50/25% of the Sun is covered, dot at the maximum"
         >
-          Boost shadow
+          Lines
         </button>
         <button
           className={`btn ${catalogOpen ? "is-active" : ""}`}
@@ -95,6 +95,16 @@ export function HUD() {
           <p className="about__hint">
             Space — play/pause · Shift+←/→ — previous/next eclipse · drag to orbit, scroll to zoom
           </p>
+        </div>
+      )}
+
+      {showContours && (
+        <div className="legend panel" title="Fraction of the Sun's disc covered">
+          {(["100", "75", "50", "25"] as const).map((lv) => (
+            <span key={lv} className={`legend__item legend__item--${lv}`}>
+              <span className="legend__swatch" /> {lv}%
+            </span>
+          ))}
         </div>
       )}
 

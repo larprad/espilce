@@ -19,34 +19,39 @@ export function SimulationDriver() {
   const controlsRef = useRef(controls);
   controlsRef.current = controls;
 
-  // Camera preset transitions (smooth), applied when the preset changes —
-  // or when a new eclipse is selected, so Sun-line/Moon views re-aim at the
-  // new event's geometry instead of pointing where the old one was.
+  // Camera preset transitions (smooth), applied on every preset click (the
+  // seq counter bumps even when re-clicking the active one, so "Earth" also
+  // works as a recenter button) — and when a new eclipse is selected, so the
+  // Moon view re-aims at the new event's geometry.
   useEffect(
     () =>
       useEclipseStore.subscribe((state, prev) => {
         const c = controlsRef.current;
         if (!c) return;
-        const presetChanged = state.cameraPreset !== prev.cameraPreset;
+        const presetClicked = state.cameraPresetSeq !== prev.cameraPresetSeq;
         const eclipseChanged =
           state.selectedEclipseId !== prev.selectedEclipseId && state.selectedEclipseId !== null;
-        if (!presetChanged && !(eclipseChanged && state.cameraPreset !== "wide")) return;
-        const t = getSimTimeMs();
-        const gs = computeGeoState(t);
-        if (state.cameraPreset === "wide") {
+        if (!presetClicked && !(eclipseChanged && state.cameraPreset !== "earth")) return;
+        if (state.cameraPreset === "earth") {
           c.setLookAt(...CAMERA_WIDE, 0, 0, 0, true);
-        } else if (state.cameraPreset === "sunline") {
-          // Just off the Sun–Earth axis, sunward side, looking back at Earth.
-          // Keep the offset small: it reads as parallax between the Moon
-          // (10 units out) and Earth, so a large one flings the Moon aside.
-          _dir.copy(gs.sunKm).normalize().multiplyScalar(16);
-          c.setLookAt(_dir.x + 0.6, _dir.y + 1.1, _dir.z, 0, 0, 0, true);
-        } else {
+        } else if (state.cameraPreset === "moon") {
           // Between Earth and Moon, looking at the Moon's near side — during
           // a lunar eclipse that's the face that turns red (the far side is
           // simply night). Slightly above the line so Earth doesn't block.
+          const gs = computeGeoState(getSimTimeMs());
           _dir.copy(gs.moonKm).normalize().multiplyScalar(MOON_DISPLAY_DIST);
           c.setLookAt(_dir.x * 0.55, _dir.y * 0.55 + 1.4, _dir.z * 0.55, _dir.x, _dir.y, _dir.z, true);
+        } else {
+          // On the Earth–Sun line, 8 units sunward, looking at the Sun. The
+          // Moon orbits at 10 display units, so during a solar eclipse its
+          // dark disc (~2 units ahead) covers the Sun like the real thing.
+          const gs = computeGeoState(getSimTimeMs());
+          _dir.copy(gs.sunKm).normalize();
+          c.setLookAt(
+            _dir.x * 8, _dir.y * 8 + 0.15, _dir.z * 8,
+            _dir.x * SUN_DISPLAY_DIST, _dir.y * SUN_DISPLAY_DIST, _dir.z * SUN_DISPLAY_DIST,
+            true,
+          );
         }
       }),
     [],
@@ -56,7 +61,6 @@ export function SimulationDriver() {
     const { earthGroup, moonGroup, sunMesh, earthMaterial, moonMaterial } = sceneRefs;
     const state = useEclipseStore.getState();
     const gs = computeGeoState(getSimTimeMs());
-    const boost = state.shadowBoost ? 0.35 : 1.0;
 
     if (earthGroup) earthGroup.quaternion.copy(gs.earthQuat);
     if (moonGroup) {
@@ -69,18 +73,20 @@ export function SimulationDriver() {
     if (earthMaterial) {
       earthMaterial.uniforms.uSunPosKm.value.copy(gs.sunKm);
       earthMaterial.uniforms.uMoonPosKm.value.copy(gs.moonKm);
-      earthMaterial.uniforms.uShadowBoost.value = boost;
+      earthMaterial.uniforms.uContours.value = state.showContours ? 1.0 : 0.0;
     }
     if (moonMaterial) {
       moonMaterial.uniforms.uSunPosKm.value.copy(gs.sunKm);
       moonMaterial.uniforms.uMoonPosKm.value.copy(gs.moonKm);
-      moonMaterial.uniforms.uShadowBoost.value = boost;
     }
 
-    // Follow the Moon: keep the orbit target glued to it (no transition).
+    // Follow the targeted body: keep the orbit target glued to it (no
+    // transition) — both drift as time scrubs.
     const c = controlsRef.current;
     if (c && state.cameraPreset === "moon" && moonGroup) {
       c.setTarget(moonGroup.position.x, moonGroup.position.y, moonGroup.position.z, false);
+    } else if (c && state.cameraPreset === "sun" && sunMesh) {
+      c.setTarget(sunMesh.position.x, sunMesh.position.y, sunMesh.position.z, false);
     }
   });
 

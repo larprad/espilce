@@ -403,6 +403,44 @@
   color: var(--text-3);
 }
 
+/* ---------- Contours legend ---------- */
+
+.legend {
+  position: absolute;
+  right: var(--sp-4);
+  top: 72px;
+  display: flex;
+  align-items: center;
+  gap: var(--sp-3);
+  padding: var(--sp-2) var(--sp-3);
+  font-family: var(--font-mono);
+  font-size: var(--fs-xs);
+  color: var(--text-2);
+
+  /* Must match the C25/C50/C75/C100 ramp in earthMaterial.ts */
+  --lv-100: #ff5738;
+  --lv-75: #ffb347;
+  --lv-50: #80e0d1;
+  --lv-25: #6ea8ff;
+}
+
+.legend__item {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.legend__swatch {
+  width: 10px;
+  height: 2px;
+  border-radius: 1px;
+}
+
+.legend__item--100 .legend__swatch { background: var(--lv-100); }
+.legend__item--75 .legend__swatch { background: var(--lv-75); }
+.legend__item--50 .legend__swatch { background: var(--lv-50); }
+.legend__item--25 .legend__swatch { background: var(--lv-25); }
+
 /* ---------- About popover ---------- */
 
 .about {

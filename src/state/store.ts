@@ -5,7 +5,7 @@ import { MAX_TIME_MS, MIN_TIME_MS, type EclipseType } from "../astro/types";
 export const SPEEDS = [1, 60, 600, 3600, 21600, 86400] as const;
 export type Speed = (typeof SPEEDS)[number];
 
-export type CameraPreset = "wide" | "sunline" | "moon";
+export type CameraPreset = "earth" | "moon" | "sun";
 
 interface FineWindow {
   startMs: number;
@@ -25,7 +25,10 @@ interface EclipseStore {
   selectedEclipseId: string | null;
   fineWindow: FineWindow | null;
   cameraPreset: CameraPreset;
-  shadowBoost: boolean;
+  /** Bumped on every setCameraPreset call, so re-clicking the active preset re-aims. */
+  cameraPresetSeq: number;
+  /** Obscuration overlay: iso-lines at 100/75/50/25% Sun coverage. */
+  showContours: boolean;
   catalogOpen: boolean;
   /** Timezone used for every human-facing time (input included). */
   timeDisplay: "local" | "utc";
@@ -39,7 +42,7 @@ interface EclipseStore {
   jumpToNext(type?: EclipseType): void;
   jumpToPrev(type?: EclipseType): void;
   setCameraPreset(p: CameraPreset): void;
-  setShadowBoost(on: boolean): void;
+  setShowContours(on: boolean): void;
   setCatalogOpen(open: boolean): void;
   setTimeDisplay(mode: "local" | "utc"): void;
 }
@@ -68,8 +71,9 @@ export const useEclipseStore = create<EclipseStore>((set, get) => ({
 
   selectedEclipseId: null,
   fineWindow: null,
-  cameraPreset: "wide",
-  shadowBoost: false,
+  cameraPreset: "earth",
+  cameraPresetSeq: 0,
+  showContours: false,
   catalogOpen: false,
   timeDisplay: "local",
 
@@ -125,8 +129,9 @@ export const useEclipseStore = create<EclipseStore>((set, get) => ({
     if (e) s.selectEclipse(e.id);
   },
 
-  setCameraPreset: (cameraPreset) => set({ cameraPreset }),
-  setShadowBoost: (shadowBoost) => set({ shadowBoost }),
+  setCameraPreset: (cameraPreset) =>
+    set((s) => ({ cameraPreset, cameraPresetSeq: s.cameraPresetSeq + 1 })),
+  setShowContours: (showContours) => set({ showContours }),
   setCatalogOpen: (catalogOpen) => set({ catalogOpen }),
   setTimeDisplay: (timeDisplay) => set({ timeDisplay }),
 }));

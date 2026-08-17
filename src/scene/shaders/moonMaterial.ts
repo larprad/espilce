@@ -11,7 +11,6 @@ const fragment = /* glsl */ `
   uniform sampler2D uMoonMap;
   uniform vec3 uSunPosKm;
   uniform vec3 uMoonPosKm;
-  uniform float uShadowBoost;
 
   varying vec2 vUv;
   varying vec3 vDir;
@@ -26,7 +25,6 @@ const fragment = /* glsl */ `
     // Earth occludes; the 1.02 factor is the classic ~2% atmospheric
     // enlargement of the umbra.
     float coverage = sunCoverage(fragPosKm, uSunPosKm, vec3(0.0), R_EARTH_KM * 1.02);
-    coverage = pow(coverage, uShadowBoost);
 
     float ndl = max(dot(vDir, sunDir), 0.0);
     vec3 albedo = texture2D(uMoonMap, vUv).rgb;
@@ -51,7 +49,6 @@ export function createMoonMaterial(moonMap: Texture): ShaderMaterial {
       uMoonMap: { value: moonMap },
       uSunPosKm: { value: new Vector3(1, 0, 0) },
       uMoonPosKm: { value: new Vector3(0, 0, 1) },
-      uShadowBoost: { value: 1.0 },
     },
   });
 }
