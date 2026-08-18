@@ -50,8 +50,10 @@ fake distances. Shadows are computed analytically per-fragment in real km via un
   optional "Lines" overlay: iso-lines at 25/50/75% + totality boundary at **0.999**
   (not 1.0 — the model has a few-km systematic under-coverage; 0.999 tracks the true edge
   best), faded past the terminator (`smoothstep` on ndl).
-- `moonMaterial.ts` — blood-moon: `sunTerm·(1−cov) + red·cov³`, Earth occluder radius
-  ×1.02 (standard atmospheric umbra enlargement).
+- `moonMaterial.ts` — blood-moon: `sunTerm·(1−cov^0.6) + red·cov³`, Earth occluder radius
+  ×1.02 (standard atmospheric umbra enlargement). The 0.6 exponent is an exaggerated
+  shading copy (like Earth's 0.55) so penumbral eclipses stay perceptible after tone
+  mapping; the red cov³ term stays physical.
 - Materials output **linear** color; the postprocessing composer does tone mapping (ACES)
   + sRGB. `EffectComposer multisampling={0}` — MSAA on the float buffer causes block
   artifacts on some GPUs.

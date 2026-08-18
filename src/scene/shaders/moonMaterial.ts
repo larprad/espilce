@@ -29,9 +29,16 @@ const fragment = /* glsl */ `
     float ndl = max(dot(vDir, sunDir), 0.0);
     vec3 albedo = texture2D(uMoonMap, vUv).rgb;
 
-    // Refracted sunset light: deep red, only meaningful near total coverage.
+    // Deliberately exaggerated shading copy (same trick as the Earth
+    // shader): penumbral dimming is nearly invisible after the ×1.8 HDR
+    // headroom + ACES highlight compression, so steepen the response.
+    // coverage==1 still maps to 1 — totality/blood-moon unchanged.
+    float shade = pow(coverage, 0.6);
+
+    // Refracted sunset light: deep red, only meaningful near total coverage
+    // (kept physical — blood-moon color timing must not shift).
     vec3 umbraTint = vec3(0.45, 0.07, 0.02);
-    vec3 sunlight = vec3(1.0) * (1.0 - coverage) + umbraTint * pow(coverage, 3.0);
+    vec3 sunlight = vec3(1.0) * (1.0 - shade) + umbraTint * pow(coverage, 3.0);
 
     // Earthshine: faint fill from the (nearly) full Earth facing the night side.
     float earthshine = 0.012;
