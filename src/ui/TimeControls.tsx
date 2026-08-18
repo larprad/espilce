@@ -6,10 +6,9 @@ import { fromDatetimeInput, toDatetimeInput, zoneLabel } from "./format";
 const SPEED_LABELS: Record<Speed, string> = {
   1: "1×",
   60: "1 min/s",
+  300: "5 min/s",
   600: "10 min/s",
-  3600: "1 h/s",
-  21600: "6 h/s",
-  86400: "1 d/s",
+  1800: "30 min/s",
 };
 
 /* Inline SVG transport icons — text glyphs like ⏸ render as colored emoji

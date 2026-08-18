@@ -9,7 +9,7 @@ import {
 import { MAX_TIME_MS, MIN_TIME_MS, type EclipseType } from "../astro/types";
 import { initialShare } from "./share";
 
-export const SPEEDS = [1, 60, 600, 3600, 21600, 86400] as const;
+export const SPEEDS = [1, 60, 300, 600, 1800] as const;
 export type Speed = (typeof SPEEDS)[number];
 
 export type CameraPreset = "eclipse" | "earth" | "moon";
@@ -87,7 +87,7 @@ export const useEclipseStore = create<EclipseStore>((set, get) => ({
   // (the camera counterpart is the initial aim in the driver).
   baseSimMs: clampTime(initialShare?.t ?? initialEclipse.peakMs - 45 * 60_000),
   basePerfMs: null,
-  speed: 600,
+  speed: 300,
 
   selectedEclipseId: initialEclipse.id,
   fineWindow: fineWindowFor(initialEclipse.id),
@@ -121,7 +121,7 @@ export const useEclipseStore = create<EclipseStore>((set, get) => ({
     set((s) => ({
       baseSimMs: s.fineWindow.startMs,
       basePerfMs: performance.now(),
-      speed: 600 as Speed,
+      speed: 300 as Speed,
     })),
 
   // Re-anchor so changing speed never jumps the current instant.
@@ -140,7 +140,7 @@ export const useEclipseStore = create<EclipseStore>((set, get) => ({
       fineWindow: fineWindowFor(id),
       baseSimMs: clampTime(e.peakMs - 45 * 60_000),
       basePerfMs: null, // land paused, ready to scrub or play
-      speed: 600,
+      speed: 300,
       // Always show the phenomenon itself: the eclipse camera lock presents
       // solar events as the shadow on Earth and lunar ones as the red Moon.
       // The seq bump forces a re-aim even if the lock was already active.
