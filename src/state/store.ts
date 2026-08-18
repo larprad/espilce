@@ -101,7 +101,14 @@ export const useEclipseStore = create<EclipseStore>((set, get) => ({
       basePerfMs: s.basePerfMs === null ? null : performance.now(),
     })),
 
-  play: () => set({ baseSimMs: simTimeOf(get()), basePerfMs: performance.now() }),
+  // Playing from the end of the eclipse window (where the auto-stop parks,
+  // and the slider maxes out) means "watch it again": restart at the start.
+  play: () => {
+    const s = get();
+    const t = simTimeOf(s);
+    const atEnd = Math.abs(t - s.fineWindow.endMs) < 1000;
+    set({ baseSimMs: atEnd ? s.fineWindow.startMs : t, basePerfMs: performance.now() });
+  },
   pause: () => set({ baseSimMs: simTimeOf(get()), basePerfMs: null }),
   togglePlay: () => (get().basePerfMs === null ? get().play() : get().pause()),
 
