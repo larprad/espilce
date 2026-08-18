@@ -87,7 +87,8 @@ export const useEclipseStore = create<EclipseStore>((set, get) => ({
 
   selectedEclipseId: initialEclipse.id,
   fineWindow: fineWindowFor(initialEclipse.id),
-  cameraPreset: "earth",
+  // Same view as selecting an eclipse — the lock keeps the phenomenon framed.
+  cameraPreset: "eclipse",
   cameraPresetSeq: 0,
   showContours: true,
   showCities: false,

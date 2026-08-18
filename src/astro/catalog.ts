@@ -53,13 +53,13 @@ export function nearestEclipse(t: number): EclipseEvent {
 /**
  * Half-width of the "eclipse is happening" window around a peak — drives the
  * fine slider's range, the auto-stop, and the camera lock's availability.
- * Solar: the catalog has no contact times; ±3 h contains the longest global
- * partial phases (~±2.7 h) with a short lead-in. Lunar: the penumbral
- * semi-duration IS the whole event — pad it a little.
+ * ±2 h keeps the slider tight around the spectacle: the longest lunar UMBRAL
+ * phases span ±118 min (penumbral tails are invisible to the eye), and while
+ * the most extreme solar partial phases stretch to ~±2.7 h, coverage out
+ * there is a sliver — the heart of every event sits well inside.
  */
-export function eclipseHalfWindowMs(e: EclipseEvent): number {
-  if (e.type === "solar" || e.sdPenumMin == null) return 3 * 3600_000;
-  return (e.sdPenumMin + 20) * 60_000;
+export function eclipseHalfWindowMs(_e: EclipseEvent): number {
+  return 2 * 3600_000;
 }
 
 export function activeEclipse(t: number, selectedId?: string | null): EclipseEvent | null {

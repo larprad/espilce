@@ -27,8 +27,12 @@ export function FineSlider() {
     ];
     for (const [sd, label] of phases) {
       if (sd && sd > 0) {
-        marks.push({ ms: eclipse.peakMs - sd * 60_000, label: `${label} begins` });
-        marks.push({ ms: eclipse.peakMs + sd * 60_000, label: `${label} ends` });
+        // Long penumbral phases can start before the window — keep marks
+        // on the track only.
+        const start = eclipse.peakMs - sd * 60_000;
+        const end = eclipse.peakMs + sd * 60_000;
+        if (start >= window.startMs) marks.push({ ms: start, label: `${label} begins` });
+        if (end <= window.endMs) marks.push({ ms: end, label: `${label} ends` });
       }
     }
   }
