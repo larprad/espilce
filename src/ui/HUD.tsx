@@ -1,10 +1,12 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
-import { activeEclipse } from "../astro/catalog";
+import { activeEclipse, getEclipse } from "../astro/catalog";
+import { localSolarCircumstances } from "../astro/localEclipse";
 import { sceneRefs } from "../scene/sceneRefs";
 import { buildShareUrl } from "../state/share";
 import { type CameraPreset, getSimTimeMs, useEclipseStore } from "../state/store";
 import { useSimTime } from "../state/useSimTime";
+import { eclipseTitle, fmtDateTime, fmtDurationMin, fmtDurationSec, fmtLatLon } from "./format";
 import { CatalogPanel } from "./CatalogPanel";
 import { EclipseStatus } from "./EclipseStatus";
 import { PickerHint } from "./PickerHint";
@@ -143,6 +145,82 @@ function EclipseLockButton() {
   );
 }
 
+/** About popover: one-line intro, the selected eclipse's facts, sources. */
+function AboutPanel() {
+  const selectedId = useEclipseStore((s) => s.selectedEclipseId);
+  const utc = useEclipseStore((s) => s.timeDisplay === "utc");
+  const e = getEclipse(selectedId)!;
+
+  // The totality line runs astronomy-engine's local-eclipse search — memoized,
+  // and only while the popover is open (this component mounts on demand).
+  const facts: string[] = useMemo(() => {
+    const out: string[] = [];
+    if (e.type === "solar") {
+      if (e.obscuration != null)
+        out.push(`The Moon covers up to ${Math.round(e.obscuration * 100)}% of the Sun`);
+      if (e.lat != null && e.lon != null) {
+        out.push(`greatest eclipse over ${fmtLatLon(e.lat, e.lon)}`);
+        const local = localSolarCircumstances(e.id, e.lat, e.lon);
+        if (local.centralBeginMs !== null && local.centralEndMs !== null) {
+          const durSec = (local.centralEndMs - local.centralBeginMs) / 1000;
+          out.push(
+            `${local.kind === "annular" ? "annularity" : "totality"} up to ${fmtDurationSec(durSec)}`,
+          );
+        }
+      }
+    } else if (e.sdTotalMin || e.sdPartialMin) {
+      if (e.sdTotalMin) out.push(`Totality lasts ${fmtDurationMin(2 * e.sdTotalMin)}`);
+      if (e.sdPartialMin) out.push(`partial phase ${fmtDurationMin(2 * e.sdPartialMin)}`);
+    } else if (e.sdPenumMin) {
+      out.push(`Penumbral phase lasts ${fmtDurationMin(2 * e.sdPenumMin)}`);
+    }
+    return out;
+  }, [e]);
+
+  return (
+    <div className="about panel">
+      <h3>
+        Espilce
+        <a
+          className="about__by"
+          href="https://github.com/larprad/espilce"
+          target="_blank"
+          rel="noreferrer"
+        >
+          by Larprad
+        </a>
+      </h3>
+      <div className="about__eclipse">
+        <div className="about__eclipse-title">
+          <span className={`chip chip--${e.type}`}>{e.type}</span>
+          <span>
+            {eclipseTitle(e)} — {fmtDateTime(e.peakMs, utc)}
+          </span>
+        </div>
+        {facts.length > 0 && <p className="about__facts">{facts.join(" · ")}</p>}
+      </div>
+      <p>
+        Ephemeris by{" "}
+        <a href="https://github.com/cosinekitty/astronomy" target="_blank" rel="noreferrer">
+          astronomy-engine
+        </a>
+        . Textures by{" "}
+        <a href="https://www.solarsystemscope.com/textures/" target="_blank" rel="noreferrer">
+          Solar System Scope
+        </a>{" "}
+        (CC BY 4.0). City data by{" "}
+        <a href="https://www.geonames.org/" target="_blank" rel="noreferrer">
+          GeoNames
+        </a>{" "}
+        (CC BY 4.0).
+      </p>
+      <p className="about__hint">
+        Space — play/pause · Shift+←/→ — previous/next eclipse · drag to orbit, scroll to zoom
+      </p>
+    </div>
+  );
+}
+
 export function HUD() {
   const cameraPreset = useEclipseStore((s) => s.cameraPreset);
   const showContours = useEclipseStore((s) => s.showContours);
@@ -249,43 +327,7 @@ export function HUD() {
       <TimeControls onAbout={() => setAboutOpen((v) => !v)} />
       </div>
 
-      {aboutOpen && (
-        <div className="about panel">
-          <h3>
-            Espilce
-            <a
-              className="about__by"
-              href="https://github.com/larprad/espilce"
-              target="_blank"
-              rel="noreferrer"
-            >
-              by Larprad
-            </a>
-          </h3>
-          <p>
-            A 3D eclipse viewer. Positions come from real ephemeris data (
-            <a href="https://github.com/cosinekitty/astronomy" target="_blank" rel="noreferrer">
-              astronomy-engine
-            </a>
-            ); shadows are computed per-pixel from true Sun/Moon geometry. Distances are
-            compressed for readability — directions and timings are real.
-          </p>
-          <p>
-            Textures by{" "}
-            <a href="https://www.solarsystemscope.com/textures/" target="_blank" rel="noreferrer">
-              Solar System Scope
-            </a>{" "}
-            (CC BY 4.0). City data by{" "}
-            <a href="https://www.geonames.org/" target="_blank" rel="noreferrer">
-              GeoNames
-            </a>{" "}
-            (CC BY 4.0).
-          </p>
-          <p className="about__hint">
-            Space — play/pause · Shift+←/→ — previous/next eclipse · drag to orbit, scroll to zoom
-          </p>
-        </div>
-      )}
+      {aboutOpen && <AboutPanel />}
 
       <CatalogPanel />
     </div>

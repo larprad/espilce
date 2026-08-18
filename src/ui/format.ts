@@ -29,6 +29,13 @@ const pick = (utc: boolean): "utc" | "local" => (utc ? "utc" : "local");
 
 export const fmtDate = (ms: number, utc: boolean) => FMT.date[pick(utc)].format(ms);
 export const fmtTime = (ms: number, utc: boolean) => FMT.time[pick(utc)].format(ms);
+
+/** Seconds → "36 s" / "2 min 08 s". */
+export function fmtDurationSec(totalSec: number): string {
+  const s = Math.round(totalSec);
+  if (s < 60) return `${s} s`;
+  return `${Math.floor(s / 60)} min ${String(s % 60).padStart(2, "0")} s`;
+}
 export const fmtDateTime = (ms: number, utc: boolean) =>
   `${fmtDate(ms, utc)} · ${fmtTime(ms, utc)}`;
 
@@ -52,6 +59,20 @@ export function fmtCountdown(fromMs: number, toMs: number): string {
           : `${Math.round(min / 1440)} days`;
   if (parts === "now") return "peak now";
   return delta > 0 ? `peak in ${parts}` : `peak ${parts} ago`;
+}
+
+/** Minutes → "1 h 07 min" / "36 min". */
+export function fmtDurationMin(min: number): string {
+  const m = Math.round(min);
+  if (m < 60) return `${m} min`;
+  return `${Math.floor(m / 60)} h ${String(m % 60).padStart(2, "0")} min`;
+}
+
+/** "65.2°N, 25.3°W" */
+export function fmtLatLon(lat: number, lon: number): string {
+  const ns = `${Math.abs(lat).toFixed(1)}°${lat >= 0 ? "N" : "S"}`;
+  const ew = `${Math.abs(lon).toFixed(1)}°${lon >= 0 ? "E" : "W"}`;
+  return `${ns}, ${ew}`;
 }
 
 export function eclipseTitle(e: EclipseEvent): string {
