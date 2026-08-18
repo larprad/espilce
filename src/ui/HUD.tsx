@@ -1,6 +1,9 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import { activeEclipse } from "../astro/catalog";
-import { type CameraPreset, useEclipseStore } from "../state/store";
+import { sceneRefs } from "../scene/sceneRefs";
+import { buildShareUrl } from "../state/share";
+import { type CameraPreset, getSimTimeMs, useEclipseStore } from "../state/store";
 import { useSimTime } from "../state/useSimTime";
 import { CatalogPanel } from "./CatalogPanel";
 import { EclipseStatus } from "./EclipseStatus";
@@ -43,6 +46,75 @@ const ChevronRight = () => (
     <path d="M6 3l5 5-5 5" />
   </svg>
 );
+
+/* The social-media "share" curved arrow (forward arrow with a swooping tail). */
+const ShareIcon = () => (
+  <svg
+    width="15"
+    height="15"
+    viewBox="0 0 16 16"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="1.5"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+    aria-hidden="true"
+  >
+    <path d="M9.8 3.4 14.2 7.9 9.8 12.4v-2.7C6.2 9.7 3.9 11.1 2.1 13.9c.4-4.8 3-7.6 7.7-8z" />
+  </svg>
+);
+const CheckIcon = () => (
+  <svg
+    width="14"
+    height="14"
+    viewBox="0 0 16 16"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="1.8"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+    aria-hidden="true"
+  >
+    <path d="M3 8.5 6.5 12 13 4.5" />
+  </svg>
+);
+
+/** Copies a link reproducing the current view: eclipse, time, camera,
+ *  overlays — all in the URL hash (parsed at boot in share.ts). */
+function ShareButton() {
+  const [copied, setCopied] = useState(false);
+  const timerRef = useRef<ReturnType<typeof setTimeout>>(undefined);
+  useEffect(() => () => clearTimeout(timerRef.current), []);
+  return (
+    <>
+      <button
+        className={`btn btn--icon btn--share ${copied ? "is-active" : ""}`}
+        title="Copy a link to this exact view"
+        onClick={() => {
+          const controls = sceneRefs.controls;
+          if (!controls) return;
+          const url = buildShareUrl(useEclipseStore.getState(), getSimTimeMs(), controls);
+          navigator.clipboard.writeText(url).then(() => {
+            setCopied(true);
+            clearTimeout(timerRef.current);
+            timerRef.current = setTimeout(() => setCopied(false), 2400);
+          });
+        }}
+      >
+        {copied ? <CheckIcon /> : <ShareIcon />}
+      </button>
+      {/* Portal: backdrop-filter panels are containing blocks for positioned
+          descendants, so screen-centering requires escaping to <body>. */}
+      {copied &&
+        createPortal(
+          <div className="share-toast" role="status">
+            Link copied — it will show this exact view
+          </div>,
+          document.body,
+        )}
+    </>
+  );
+}
 
 /**
  * Isolated so its 8 Hz useSimTime tick re-renders only this button — putting
@@ -160,9 +232,7 @@ export function HUD() {
         >
           Cities
         </button>
-        <button className="btn btn--icon" onClick={() => setAboutOpen(!aboutOpen)} title="About">
-          ?
-        </button>
+        <ShareButton />
         </div>
 
         {showContours && (
@@ -176,7 +246,7 @@ export function HUD() {
           </div>
         )}
       </div>
-      <TimeControls />
+      <TimeControls onAbout={() => setAboutOpen((v) => !v)} />
       </div>
 
       {aboutOpen && (

@@ -125,13 +125,22 @@ Stage layout, same structure on desktop and mobile: **top-left** = brand only;
 **top-center** = the eclipse picker `‹ [badge ▾] ›` — an eclipse is always selected, the
 badge click opens the catalog as a centered dropdown beneath it (auto-scrolled to the
 selection, closes on pick); **bottom stack** (`.hud__bottom-stack`, one flex column on
-all widths) = Lines legend, then the view bar (Eclipse/Earth/Moon ‖ Lines/Cities/?),
+all widths) = Lines legend, then the view bar (Eclipse/Earth/Moon ‖ Lines/Cities/Share),
 then the time dock (play, datetime with seconds — totality can last <60 s — timezone
-toggle, speeds, the event fine-slider; there is no coarse timeline slider).
+toggle, the About ⓘ button, speeds, the event fine-slider; there is no coarse timeline
+slider).
 
 Times display in the viewer's **local timezone by default** (UTC toggle) — users remember
 eclipses in local time; the datetime-local input is fed wall-clock digits per mode
 ([format.ts](src/ui/format.ts)).
+
+Share links ([share.ts](src/state/share.ts)): the Share button copies the current view as
+a URL **hash** — `#e=<id>&t=<simMs>&v=<preset>&c=px,py,pz,tx,ty,tz&o=[l][c]` (hash so it
+never hits the Pages server, invisible to OG scrapers, orthogonal to `?nofx`). Parsed
+ONCE at boot into `initialShare`; the store initializer takes id/t/preset/overlays, the
+driver's mount aim applies the exact camera (skipping the preset aim). Every field is
+validated independently — a corrupt param falls back to that field's boot default. The
+CameraControls instance reaches the UI via `sceneRefs.controls`.
 
 Mobile (≤720px) diverges only in compactness: smaller buttons, speed buttons swap to a
 native `<select className="speed-select">` (renders as a detached mini-popup in Chrome

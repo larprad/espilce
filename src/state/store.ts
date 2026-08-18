@@ -7,6 +7,7 @@ import {
   prevEclipse,
 } from "../astro/catalog";
 import { MAX_TIME_MS, MIN_TIME_MS, type EclipseType } from "../astro/types";
+import { initialShare } from "./share";
 
 export const SPEEDS = [1, 60, 600, 3600, 21600, 86400] as const;
 export type Speed = (typeof SPEEDS)[number];
@@ -75,23 +76,26 @@ function fineWindowFor(id: string): FineWindow {
   return { startMs: e.peakMs - halfMs, endMs: e.peakMs + halfMs };
 }
 
-const initialEclipse = nearestEclipse(clampTime(Date.now()));
+// A share link (URL hash) overrides any boot default it carries.
+const initialEclipse =
+  (initialShare?.eclipseId && getEclipse(initialShare.eclipseId)) ||
+  nearestEclipse(clampTime(Date.now()));
 
 export const useEclipseStore = create<EclipseStore>((set, get) => ({
   // Boot inside the nearest eclipse's window, paused 45 min before peak —
   // same landing as selecting it — so the app opens on something to see
-  // (the camera counterpart is the initial Earth-view aim in the driver).
-  baseSimMs: clampTime(initialEclipse.peakMs - 45 * 60_000),
+  // (the camera counterpart is the initial aim in the driver).
+  baseSimMs: clampTime(initialShare?.t ?? initialEclipse.peakMs - 45 * 60_000),
   basePerfMs: null,
   speed: 600,
 
   selectedEclipseId: initialEclipse.id,
   fineWindow: fineWindowFor(initialEclipse.id),
   // Same view as selecting an eclipse — the lock keeps the phenomenon framed.
-  cameraPreset: "eclipse",
+  cameraPreset: initialShare?.preset ?? "eclipse",
   cameraPresetSeq: 0,
-  showContours: true,
-  showCities: false,
+  showContours: initialShare?.lines ?? true,
+  showCities: initialShare?.cities ?? false,
   catalogOpen: false,
   timeDisplay: "local",
   sceneReady: false,

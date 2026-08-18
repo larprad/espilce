@@ -2,6 +2,7 @@ import { CameraControls, Stars } from "@react-three/drei";
 import { Canvas } from "@react-three/fiber";
 import { Suspense, useEffect } from "react";
 import { useEclipseStore } from "../state/store";
+import { sceneRefs } from "./sceneRefs";
 import { Earth } from "./Earth";
 import { Effects } from "./Effects";
 import { Moon } from "./Moon";
@@ -38,6 +39,9 @@ export function SceneRoot() {
       {/* draggingSmoothTime > default gives drags a touch of momentum: the
           camera trails the pointer and coasts briefly after release. */}
       <CameraControls
+        ref={(c) => {
+          sceneRefs.controls = c;
+        }}
         makeDefault
         minDistance={1.3}
         maxDistance={140}

@@ -25,6 +25,14 @@ const PauseIcon = () => (
     <rect x="9.6" y="2.2" width="3.4" height="11.6" rx="1" />
   </svg>
 );
+/* Classic ⓘ pictogram — outline ring, filled dot, rounded stem. */
+const InfoIcon = () => (
+  <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+    <circle cx="8" cy="8" r="6.3" stroke="currentColor" strokeWidth="1.4" />
+    <circle cx="8" cy="5.3" r="1" fill="currentColor" />
+    <path d="M8 7.9v3.2" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" />
+  </svg>
+);
 const ReplayIcon = () => (
   <svg
     width="15"
@@ -42,8 +50,8 @@ const ReplayIcon = () => (
   </svg>
 );
 
-/** Bottom dock: transport, speed, eclipse jumps, and the two sliders. */
-export function TimeControls() {
+/** Bottom dock: transport, speed, time, timezone, About, and the slider. */
+export function TimeControls({ onAbout }: { onAbout: () => void }) {
   const timeMs = useSimTime();
   const playing = useEclipseStore((s) => s.basePerfMs !== null);
   const speed = useEclipseStore((s) => s.speed);
@@ -136,6 +144,10 @@ export function TimeControls() {
             UTC
           </button>
         </div>
+
+        <button className="btn--info" onClick={onAbout} title="About">
+          <InfoIcon />
+        </button>
 
         </div>
       </div>

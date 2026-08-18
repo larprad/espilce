@@ -5,6 +5,7 @@ import { MathUtils, Quaternion, Vector3 } from "three";
 import { activeEclipse } from "../astro/catalog";
 import { computeGeoState } from "../astro/ephemeris";
 import { R_EARTH_KM, type GeoState } from "../astro/types";
+import { initialShare } from "../state/share";
 import { getSimTimeMs, useEclipseStore } from "../state/store";
 import { CAMERA_WIDE, MOON_DISPLAY_DIST, SUN_DISPLAY_DIST } from "./scale";
 import { sceneRefs } from "./sceneRefs";
@@ -165,14 +166,21 @@ export function SimulationDriver() {
 
   // Initial aim: the store boots with the nearest eclipse selected, the sim
   // time inside its window, and the lock preset — frame it instantly (the
-  // loading screen still covers the canvas at this point).
+  // loading screen still covers the canvas at this point). A share link's
+  // exact camera takes precedence over the preset's default framing.
   const aimedRef = useRef(false);
   useEffect(() => {
     if (!controls || aimedRef.current) return;
     aimedRef.current = true;
     const state = useEclipseStore.getState();
-    if (state.cameraPreset === "eclipse") aimEclipseLock(controls, state.selectedEclipseId, false);
-    else if (state.cameraPreset === "earth") aimEarthView(controls, state.selectedEclipseId, false);
+    if (initialShare?.cam) {
+      const [px, py, pz, tx, ty, tz] = initialShare.cam;
+      controls.setLookAt(px, py, pz, tx, ty, tz, false);
+    } else if (state.cameraPreset === "eclipse") {
+      aimEclipseLock(controls, state.selectedEclipseId, false);
+    } else if (state.cameraPreset === "earth") {
+      aimEarthView(controls, state.selectedEclipseId, false);
+    }
   }, [controls]);
 
   useFrame(() => {

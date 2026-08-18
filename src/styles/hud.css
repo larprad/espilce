@@ -65,6 +65,11 @@
   align-items: center;
   gap: var(--sp-2);
   padding: var(--sp-2);
+  /* Above the legend (a later sibling), so the share toast — confined to
+     this panel's backdrop-filter stacking context — can rise over it.
+     z-index works here because the bar is a flex item; deliberately NOT
+     position: relative, so the absolute toast anchors to the wrap. */
+  z-index: 5;
 }
 
 .hud__divider {
@@ -105,6 +110,48 @@
 
 .btn--icon {
   padding: 6px 10px;
+}
+
+/* Icon-only buttons center their SVG against the text-button baseline. */
+.btn--share {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  align-self: stretch;
+}
+
+/* Copy confirmation: a screen-centered toast, portaled to <body> (the
+   backdrop-filter panels are containing blocks, so it can't be positioned
+   from inside the view bar). */
+.share-toast {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 40;
+  padding: 14px 26px;
+  font-size: var(--fs-m);
+  color: var(--text-1);
+  background: var(--panel);
+  backdrop-filter: var(--blur-panel);
+  -webkit-backdrop-filter: var(--blur-panel);
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-m);
+  white-space: nowrap;
+  max-width: calc(100vw - 2 * var(--sp-4));
+  pointer-events: none;
+  animation: toast-in 0.25s ease both;
+}
+
+@keyframes toast-in {
+  from {
+    opacity: 0;
+    transform: translate(-50%, calc(-50% + 8px));
+  }
+  to {
+    opacity: 1;
+    transform: translate(-50%, -50%);
+  }
 }
 
 /* The play button is a little eclipse: dark disc, warm corona. It pulses
@@ -161,8 +208,9 @@
   gap: var(--sp-3);
 }
 
-/* Secondary transport button: replay the whole eclipse. */
-.btn--replay {
+/* Secondary circular icon buttons: replay the eclipse, About. */
+.btn--replay,
+.btn--info {
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -177,7 +225,8 @@
     background var(--transition-fast);
 }
 
-.btn--replay:hover {
+.btn--replay:hover,
+.btn--info:hover {
   color: var(--text-1);
   border-color: var(--border-strong);
   background: rgba(255, 255, 255, 0.08);
@@ -782,19 +831,20 @@
     bottom: max(var(--sp-2), env(safe-area-inset-bottom));
   }
 
-  /* One-line view bar with comfortable touch targets. */
+  /* One-line view bar with comfortable touch targets — spacing shaved just
+     enough that all seven controls (incl. Share) fit a 390px row. */
   .hud__top-right {
-    gap: var(--sp-1);
-    padding: 6px;
+    gap: 2px;
+    padding: 4px;
   }
 
   .hud__top-right .btn {
-    padding: 6px 10px;
+    padding: 6px 8px;
     font-size: var(--fs-s);
   }
 
   .hud__top-right .hud__divider {
-    margin: 0 2px;
+    margin: 0;
   }
 
   /* Simplified dock: play + datetime + speed select, then the slider. */
@@ -814,6 +864,12 @@
     display: block;
     font-size: var(--fs-xs);
     padding: 6px 8px;
+  }
+
+  /* Keep play + replay + speed + time + ⓘ on one 390px row. */
+  .dock__left,
+  .dock__time {
+    gap: var(--sp-2);
   }
 
   .slider-label {
