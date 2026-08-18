@@ -50,8 +50,11 @@ function aimEclipseLock(c: CameraControls, selectedEclipseId: string, transition
   if (!e) {
     aimEarthView(c, selectedEclipseId, transition);
   } else if (e.type === "lunar") {
+    // Close-up on the near side: ~2 display units from the Moon puts its
+    // disc at ~15° across — near full width on a phone screen, a generous
+    // blood moon on desktop.
     _dir.copy(gs.moonKm).normalize().multiplyScalar(MOON_DISPLAY_DIST);
-    c.setLookAt(_dir.x * 0.55, _dir.y * 0.55 + 1.4, _dir.z * 0.55, _dir.x, _dir.y, _dir.z, transition);
+    c.setLookAt(_dir.x * 0.8, _dir.y * 0.8 + 0.4, _dir.z * 0.8, _dir.x, _dir.y, _dir.z, transition);
   } else {
     shadowLockDir(gs, _dir);
     c.setLookAt(
@@ -124,9 +127,9 @@ export function SimulationDriver() {
             // eclipse shadow behind it (~12 deg apart, both in frame).
             _perp.set(_dir.z, 0, -_dir.x).normalize();
             c.setLookAt(
-              _dir.x * 14 + _perp.x * 1.3,
-              _dir.y * 14 + 0.5,
-              _dir.z * 14 + _perp.z * 1.3,
+              _dir.x * 12.3 + _perp.x * 1.3,
+              _dir.y * 12.3 + 0.5,
+              _dir.z * 12.3 + _perp.z * 1.3,
               _dir.x * MOON_DISPLAY_DIST,
               _dir.y * MOON_DISPLAY_DIST,
               _dir.z * MOON_DISPLAY_DIST,
@@ -138,7 +141,7 @@ export function SimulationDriver() {
             // far side is simply night). Slightly above the line so Earth
             // doesn't block.
             _dir.multiplyScalar(MOON_DISPLAY_DIST);
-            c.setLookAt(_dir.x * 0.55, _dir.y * 0.55 + 1.4, _dir.z * 0.55, _dir.x, _dir.y, _dir.z, true);
+            c.setLookAt(_dir.x * 0.72, _dir.y * 0.72 + 1.0, _dir.z * 0.72, _dir.x, _dir.y, _dir.z, true);
           }
         }
       }),

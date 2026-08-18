@@ -312,7 +312,7 @@
 .status__body {
   display: flex;
   flex-direction: column;
-  gap: 2px;
+  gap: 4px;
 }
 
 .status__title {
@@ -322,9 +322,15 @@
 }
 
 .status__meta {
-  font-size: var(--fs-xs);
+  font-size: var(--fs-s);
   color: var(--text-2);
   font-family: var(--font-mono);
+}
+
+/* The date is what users scan the badge for — let it step forward. */
+.status__date {
+  color: var(--text-1);
+  font-weight: 600;
 }
 
 /* ---------- Bottom dock ---------- */
@@ -753,9 +759,22 @@
     justify-content: center;
   }
 
+  /* Desktop-like breathing room: the badge flexes between fixed-width
+     arrows instead of being squeezed by the base min-width. */
   .status {
-    padding: var(--sp-2) var(--sp-3);
-    max-width: calc(100vw - 116px);
+    padding: 12px 18px;
+    min-width: 0;
+    flex: 1;
+  }
+
+  .picker-arrow {
+    flex-shrink: 0;
+    width: 40px;
+  }
+
+  .status__meta {
+    font-size: var(--fs-xs);
+    white-space: nowrap;
   }
 
   .hud__bottom-stack {

@@ -1,6 +1,6 @@
 import { getEclipse } from "../astro/catalog";
 import { useEclipseStore } from "../state/store";
-import { eclipseTitle, fmtDateTime } from "./format";
+import { eclipseTitle, fmtDate, fmtTime } from "./format";
 
 /**
  * The selected-eclipse badge — the app's navigation hub. Always populated
@@ -29,7 +29,11 @@ export function EclipseStatus() {
       <span className={`chip chip--${eclipse.type}`}>{eclipse.type}</span>
       <span className="status__body">
         <span className="status__title">{eclipseTitle(eclipse)}</span>
-        <span className="status__meta">{fmtDateTime(eclipse.peakMs, utc)}</span>
+        <span className="status__meta">
+          <span className="status__date">{fmtDate(eclipse.peakMs, utc)}</span>
+          {" · "}
+          {fmtTime(eclipse.peakMs, utc)}
+        </span>
       </span>
     </button>
   );
