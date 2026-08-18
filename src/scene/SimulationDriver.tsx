@@ -12,6 +12,7 @@ import { sceneRefs } from "./sceneRefs";
 const _dir = new Vector3();
 const _perp = new Vector3();
 const _target = new Vector3();
+const _curTarget = new Vector3();
 const _axis = new Vector3();
 const _prevLock = new Vector3(); // zero-length = lock not engaged
 const _lockQ = new Quaternion();
@@ -37,6 +38,20 @@ function shadowLockDir(gs: GeoState, out: Vector3): Vector3 {
 
 /** Camera distance (Earth radii from the center) of the solar eclipse lock. */
 const ECLIPSE_LOCK_DIST = 3.4;
+
+/**
+ * Pin the orbit target ONLY when it actually moved. Calling setTarget every
+ * frame would rebase camera-controls' damped sphericals to the current
+ * position, killing the post-release glide (drag momentum) whenever a preset
+ * is active — the epsilon skip keeps the pin and the momentum.
+ */
+function pinTarget(c: CameraControls, x: number, y: number, z: number) {
+  c.getTarget(_curTarget);
+  const dx = _curTarget.x - x;
+  const dy = _curTarget.y - y;
+  const dz = _curTarget.z - z;
+  if (dx * dx + dy * dy + dz * dz > 1e-10) c.setTarget(x, y, z, false);
+}
 
 /**
  * Eclipse-lock camera: hover above the shadow's maximum point for solar,
@@ -207,7 +222,7 @@ export function SimulationDriver() {
         state.setCameraPreset("earth");
       } else if (e.type === "lunar" && moonGroup) {
         _prevLock.set(0, 0, 0);
-        c.setTarget(moonGroup.position.x, moonGroup.position.y, moonGroup.position.z, false);
+        pinTarget(c, moonGroup.position.x, moonGroup.position.y, moonGroup.position.z);
       } else {
         // Follow the sweeping shadow: rotate the camera around Earth by the
         // same rotation the shadow point makes each frame, so the "hovering
@@ -222,14 +237,14 @@ export function SimulationDriver() {
           _camPos.copy(c.camera.position).applyQuaternion(_lockQ);
           c.setLookAt(_camPos.x, _camPos.y, _camPos.z, _dir.x, _dir.y, _dir.z, false);
         } else {
-          c.setTarget(_dir.x, _dir.y, _dir.z, false);
+          pinTarget(c, _dir.x, _dir.y, _dir.z);
         }
         _prevLock.copy(_dir);
       }
     } else if (c && state.cameraPreset === "moon" && moonGroup) {
-      c.setTarget(moonGroup.position.x, moonGroup.position.y, moonGroup.position.z, false);
+      pinTarget(c, moonGroup.position.x, moonGroup.position.y, moonGroup.position.z);
     } else if (c && state.cameraPreset === "earth") {
-      c.setTarget(0, 0, 0, false);
+      pinTarget(c, 0, 0, 0);
     }
 
     // Altitude-proportional controls: dolly steps are multiplicative on the

@@ -35,7 +35,15 @@ export function SceneRoot() {
         <SceneReady />
       </Suspense>
       <SimulationDriver />
-      <CameraControls makeDefault minDistance={1.3} maxDistance={140} smoothTime={0.35} />
+      {/* draggingSmoothTime > default gives drags a touch of momentum: the
+          camera trails the pointer and coasts briefly after release. */}
+      <CameraControls
+        makeDefault
+        minDistance={1.3}
+        maxDistance={140}
+        smoothTime={0.35}
+        draggingSmoothTime={0.25}
+      />
       <Effects />
     </Canvas>
   );
