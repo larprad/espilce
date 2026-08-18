@@ -683,6 +683,24 @@
   text-transform: capitalize;
 }
 
+/* Corona glyph marking total eclipses. */
+.totality-icon {
+  vertical-align: -1.5px;
+  color: var(--accent-solar);
+}
+
+.row__kind .totality-icon {
+  margin-left: 6px;
+}
+
+/* "Only total" switch, set apart from the type filters. */
+.catalog__only-total {
+  margin-left: auto;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
 .row__obs {
   text-align: right;
   font-family: var(--font-mono);

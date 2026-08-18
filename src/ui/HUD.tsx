@@ -252,6 +252,18 @@ export function HUD() {
     return () => window.removeEventListener("keydown", onKey);
   }, [togglePlay, jumpToPrev, jumpToNext]);
 
+  // Click-away closes the About popover (the ⓘ button keeps its own toggle).
+  useEffect(() => {
+    if (!aboutOpen) return;
+    const onDown = (ev: PointerEvent) => {
+      const t = ev.target as HTMLElement;
+      if (t.closest(".about") || t.closest(".btn--info")) return;
+      setAboutOpen(false);
+    };
+    window.addEventListener("pointerdown", onDown);
+    return () => window.removeEventListener("pointerdown", onDown);
+  }, [aboutOpen]);
+
   return (
     <div className="hud">
       <div className="hud__top-left">
