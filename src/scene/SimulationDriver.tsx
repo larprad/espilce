@@ -36,6 +36,25 @@ function shadowLockDir(gs: GeoState, out: Vector3): Vector3 {
 }
 
 /**
+ * Wide Earth view, oriented so the selected eclipse faces the camera (solar:
+ * shadow side; lunar: the Moon sits between camera and Earth). Falls back to
+ * the plain wide view when no eclipse is active at the current time.
+ */
+function aimEarthView(c: CameraControls, selectedEclipseId: string, transition: boolean) {
+  const t = getSimTimeMs();
+  const e = activeEclipse(t, selectedEclipseId);
+  if (e) {
+    const gs = computeGeoState(t);
+    const d = Math.hypot(...CAMERA_WIDE);
+    if (e.type === "solar") shadowLockDir(gs, _dir);
+    else _dir.copy(gs.moonKm).normalize();
+    c.setLookAt(_dir.x * d, _dir.y * d, _dir.z * d, 0, 0, 0, transition);
+  } else {
+    c.setLookAt(...CAMERA_WIDE, 0, 0, 0, transition);
+  }
+}
+
+/**
  * The per-frame heartbeat: derives sim time, runs the ephemeris, and writes
  * display transforms + real-space shader uniforms straight into the scene.
  * Reads the store via getState() — no subscription, no React re-renders.
@@ -59,20 +78,7 @@ export function SimulationDriver() {
           state.selectedEclipseId !== prev.selectedEclipseId && state.selectedEclipseId !== null;
         if (!presetClicked && !(eclipseChanged && state.cameraPreset !== "earth")) return;
         if (state.cameraPreset === "earth") {
-          // Same wide distance as the default view, but oriented so the
-          // ongoing eclipse faces the camera (solar: shadow side; lunar: the
-          // Moon sits between camera and Earth).
-          const t = getSimTimeMs();
-          const e = activeEclipse(t, state.selectedEclipseId);
-          if (e) {
-            const gs = computeGeoState(t);
-            const d = Math.hypot(...CAMERA_WIDE);
-            if (e.type === "solar") shadowLockDir(gs, _dir);
-            else _dir.copy(gs.moonKm).normalize();
-            c.setLookAt(_dir.x * d, _dir.y * d, _dir.z * d, 0, 0, 0, true);
-          } else {
-            c.setLookAt(...CAMERA_WIDE, 0, 0, 0, true);
-          }
+          aimEarthView(c, state.selectedEclipseId, true);
         } else if (state.cameraPreset === "eclipse") {
           // Lock on the ongoing eclipse: hover over the shadow's maximum
           // point for solar; the Moon's near side for lunar.
@@ -118,6 +124,17 @@ export function SimulationDriver() {
       }),
     [],
   );
+
+  // Initial aim: the store boots with the nearest eclipse selected and the
+  // sim time inside its window — orient the default Earth view toward it
+  // instantly (the loading screen still covers the canvas at this point).
+  const aimedRef = useRef(false);
+  useEffect(() => {
+    if (!controls || aimedRef.current) return;
+    aimedRef.current = true;
+    const state = useEclipseStore.getState();
+    if (state.cameraPreset === "earth") aimEarthView(controls, state.selectedEclipseId, false);
+  }, [controls]);
 
   useFrame(() => {
     const { earthGroup, moonGroup, sunMesh, earthMaterial, moonMaterial } = sceneRefs;

@@ -87,9 +87,11 @@ Derived-time model: `simTime = baseSimMs + (performance.now() − basePerfMs)·s
   (position hard-set gated on `!controls.active`), auto-reverts to Earth when the
   eclipse window ends. Button enabled via `activeEclipse()` (catalog.ts).
   **Selecting an eclipse switches to this lock automatically** so the phenomenon is
-  always in view. An eclipse is ALWAYS selected (store initializes with the nearest to
-  now, without moving time or camera); the top-left badge toggles the catalog drawer and
-  is flanked by prev/next arrows — there is no separate Catalog button or deselect.
+  always in view. An eclipse is ALWAYS selected; the store boots with the nearest to now,
+  time paused at peak−45 min, and the driver aims the default Earth view at it on mount
+  (`aimEarthView`, no transition, behind the loading screen). The top-center badge toggles
+  the catalog dropdown and is flanked by prev/next arrows — there is no separate Catalog
+  button or deselect.
 
 ## Data (committed, regenerated manually)
 

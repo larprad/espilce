@@ -72,15 +72,18 @@ function fineWindowFor(id: string): FineWindow {
   return { startMs: e.peakMs - halfMs, endMs: e.peakMs + halfMs };
 }
 
-const initialEclipseId = nearestEclipse(clampTime(Date.now())).id;
+const initialEclipse = nearestEclipse(clampTime(Date.now()));
 
 export const useEclipseStore = create<EclipseStore>((set, get) => ({
-  baseSimMs: clampTime(Date.now()),
+  // Boot inside the nearest eclipse's window, paused 45 min before peak —
+  // same landing as selecting it — so the app opens on something to see
+  // (the camera counterpart is the initial Earth-view aim in the driver).
+  baseSimMs: clampTime(initialEclipse.peakMs - 45 * 60_000),
   basePerfMs: null,
-  speed: 3600,
+  speed: 600,
 
-  selectedEclipseId: initialEclipseId,
-  fineWindow: fineWindowFor(initialEclipseId),
+  selectedEclipseId: initialEclipse.id,
+  fineWindow: fineWindowFor(initialEclipse.id),
   cameraPreset: "earth",
   cameraPresetSeq: 0,
   showContours: true,
