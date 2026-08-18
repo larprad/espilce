@@ -1,5 +1,11 @@
 import { create } from "zustand";
-import { getEclipse, nearestEclipse, nextEclipse, prevEclipse } from "../astro/catalog";
+import {
+  eclipseHalfWindowMs,
+  getEclipse,
+  nearestEclipse,
+  nextEclipse,
+  prevEclipse,
+} from "../astro/catalog";
 import { MAX_TIME_MS, MIN_TIME_MS, type EclipseType } from "../astro/types";
 
 export const SPEEDS = [1, 60, 600, 3600, 21600, 86400] as const;
@@ -65,10 +71,7 @@ export function simTimeOf(s: Pick<EclipseStore, "baseSimMs" | "basePerfMs" | "sp
 
 function fineWindowFor(id: string): FineWindow {
   const e = getEclipse(id)!;
-  const halfMs =
-    e.type === "solar"
-      ? 4 * 3600_000
-      : Math.max(6 * 3600_000, 2 * (e.sdPenumMin ?? 0) * 60_000);
+  const halfMs = eclipseHalfWindowMs(e);
   return { startMs: e.peakMs - halfMs, endMs: e.peakMs + halfMs };
 }
 

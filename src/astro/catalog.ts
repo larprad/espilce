@@ -50,15 +50,23 @@ export function nearestEclipse(t: number): EclipseEvent {
  * its event window, else the nearest one if inside its window, else null.
  * Windows match the fine-slider spans (solar ±4 h, lunar ≥ ±6 h).
  */
+/**
+ * Half-width of the "eclipse is happening" window around a peak — drives the
+ * fine slider's range, the auto-stop, and the camera lock's availability.
+ * Solar: the catalog has no contact times; ±3 h contains the longest global
+ * partial phases (~±2.7 h) with a short lead-in. Lunar: the penumbral
+ * semi-duration IS the whole event — pad it a little.
+ */
+export function eclipseHalfWindowMs(e: EclipseEvent): number {
+  if (e.type === "solar" || e.sdPenumMin == null) return 3 * 3600_000;
+  return (e.sdPenumMin + 20) * 60_000;
+}
+
 export function activeEclipse(t: number, selectedId?: string | null): EclipseEvent | null {
   const candidates = [selectedId ? byId.get(selectedId) : undefined, nearestEclipse(t)];
   for (const e of candidates) {
     if (!e) continue;
-    const halfMs =
-      e.type === "solar"
-        ? 4 * 3600_000
-        : Math.max(6 * 3600_000, 2 * (e.sdPenumMin ?? 0) * 60_000);
-    if (Math.abs(t - e.peakMs) <= halfMs) return e;
+    if (Math.abs(t - e.peakMs) <= eclipseHalfWindowMs(e)) return e;
   }
   return null;
 }
