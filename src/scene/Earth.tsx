@@ -16,9 +16,10 @@ export const MESH_CALIBRATION_X = Math.PI / 2;
 
 export function Earth() {
   const gl = useThree((s) => s.gl);
-  const [dayMap, nightMap] = useLoader(TextureLoader, [
+  const [dayMap, nightMap, bordersMap] = useLoader(TextureLoader, [
     import.meta.env.BASE_URL + "textures/earth_day_8k.jpg",
     import.meta.env.BASE_URL + "textures/earth_night_8k.jpg",
+    import.meta.env.BASE_URL + "textures/borders_8k.png",
   ]);
   const material = useMemo(() => {
     const maxAniso = gl.capabilities.getMaxAnisotropy();
@@ -26,8 +27,10 @@ export function Earth() {
       t.colorSpace = SRGBColorSpace;
       t.anisotropy = maxAniso;
     }
-    return createEarthMaterial(dayMap, nightMap);
-  }, [dayMap, nightMap, gl]);
+    // Borders are a data texture (line mask) — keep linear, no sRGB decode.
+    bordersMap.anisotropy = maxAniso;
+    return createEarthMaterial(dayMap, nightMap, bordersMap);
+  }, [dayMap, nightMap, bordersMap, gl]);
 
   useEffect(() => {
     sceneRefs.earthMaterial = material;

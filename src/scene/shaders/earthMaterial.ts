@@ -10,6 +10,7 @@ import { bodyVertexGlsl, eclipseCommonGlsl } from "./eclipseCommon";
 const fragment = /* glsl */ `
   uniform sampler2D uDayMap;
   uniform sampler2D uNightMap;
+  uniform sampler2D uBordersMap; // country borders + coastlines (white on black)
   uniform vec3 uSunPosKm;
   uniform vec3 uMoonPosKm;
   uniform float uContours;    // 1.0 = draw obscuration iso-lines
@@ -33,10 +34,11 @@ const fragment = /* glsl */ `
     vec3 sunDir = normalize(uSunPosKm);
 
     float coverage = sunCoverage(vGeoPosKm, uSunPosKm, uMoonPosKm, R_MOON_KM);
-    // Deliberately exaggerated shading copy: wider penumbra, darker partial
-    // zones, so the shadow reads at a glance. The iso-lines below keep using
-    // the PHYSICAL coverage — they carry the exact values.
-    float shade = pow(coverage, 0.55);
+    // Mildly exaggerated shading copy (1.0 = physical): slightly wider
+    // penumbra and darker partial zones so the shadow reads at a glance.
+    // The iso-lines below keep using the PHYSICAL coverage — they carry
+    // the exact values.
+    float shade = pow(coverage, 0.75);
 
     float ndl = dot(vDir, sunDir);
     float dayness = smoothstep(-0.08, 0.08, ndl);
@@ -48,14 +50,22 @@ const fragment = /* glsl */ `
     vec3 day = texture2D(uDayMap, vUv).rgb;
     vec3 night = texture2D(uNightMap, vUv).rgb;
 
-    // City lights: switch on at sunset (not during late afternoon — their
-    // ramp is tighter than the day/night blend), reaching full strength a
-    // few degrees below the horizon; they also emerge under DEEP eclipse
-    // shadow, which is physically what happens during totality.
-    float lightsNight = smoothstep(0.01, -0.07, ndl);
-    float lightsEclipse = dayness * smoothstep(0.75, 0.98, shade);
-    float lightsOn = max(lightsNight, lightsEclipse);
+    // City lights: switch on at sunset only (their ramp is tighter than the
+    // day/night blend). Deliberately NOT lit under the eclipse shadow — real
+    // cities do light up during totality, but at globe scale it read as a
+    // bug; the umbra keeps a twilight glow + border lines instead (below).
+    float lightsOn = smoothstep(0.01, -0.07, ndl);
     vec3 color = day * light + night * vec3(1.0, 0.85, 0.6) * 0.9 * lightsOn;
+
+    // Deep-shadow readability: the umbra isn't a hole. A residual
+    // deep-twilight glow (scattered skylight from outside the umbra) keeps
+    // the terrain silhouette, plus VERY faint border/coastline lines for
+    // orientation. Gated on dayness — the night side keeps its city lights
+    // and nothing else.
+    float umbraFade = dayness * smoothstep(0.7, 0.97, shade);
+    color += day * vec3(0.05, 0.07, 0.12) * umbraFade;
+    float border = texture2D(uBordersMap, vUv).r;
+    color += vec3(0.08, 0.09, 0.11) * border * umbraFade;
 
     // Warm tint along the terminator band.
     float twilight = smoothstep(0.12, 0.0, abs(ndl)) * dayness;
@@ -100,13 +110,18 @@ const fragment = /* glsl */ `
   }
 `;
 
-export function createEarthMaterial(dayMap: Texture, nightMap: Texture): ShaderMaterial {
+export function createEarthMaterial(
+  dayMap: Texture,
+  nightMap: Texture,
+  bordersMap: Texture,
+): ShaderMaterial {
   return new ShaderMaterial({
     vertexShader: bodyVertexGlsl,
     fragmentShader: fragment,
     uniforms: {
       uDayMap: { value: dayMap },
       uNightMap: { value: nightMap },
+      uBordersMap: { value: bordersMap },
       uSunPosKm: { value: new Vector3(1, 0, 0) },
       uMoonPosKm: { value: new Vector3(0, 0, 1) },
       uContours: { value: 0.0 },

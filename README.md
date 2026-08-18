@@ -41,6 +41,8 @@ npm run dev
 - `npm run generate:catalog` — regenerate the eclipse catalog (run after upgrading
   astronomy-engine; includes a self-test against known eclipses).
 - `npm run generate:cities` — regenerate the city dataset from GeoNames.
+- `npm run generate:borders` — regenerate the border/coastline texture from
+  Natural Earth (needs system Chrome).
 - `npm run build` — production build.
 - Append `?nofx` to the URL to render without postprocessing (debug).
 
@@ -66,6 +68,7 @@ npm run dev
 - Ephemeris: [astronomy-engine](https://github.com/cosinekitty/astronomy) (MIT).
 - Textures: [Solar System Scope](https://www.solarsystemscope.com/textures/) (CC BY 4.0).
 - City data: [GeoNames](https://www.geonames.org/) (CC BY 4.0).
+- Borders & coastlines: [Natural Earth](https://www.naturalearthdata.com/) (public domain).
 - Label font: Roboto (Apache 2.0 / OFL), bundled subset.
 
 Built by [Larprad](https://github.com/larprad).

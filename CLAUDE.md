@@ -45,8 +45,10 @@ fake distances. Shadows are computed analytically per-fragment in real km via un
   and annularity. Precision rules: use `2·asin(½|â−b̂|)` for tiny angles (never
   `acos(dot)`), and **clamp the result to [0,1]** — a hair-negative area fed to `pow()`
   produces NaN, and bloom smears one NaN pixel across the whole frame (past bug).
-- `earthMaterial.ts` — day/night texture blend on real terminator, night city-lights that
-  emerge under eclipse shadow (physical), fresnel rim, coverage darkening, and the
+- `earthMaterial.ts` — day/night texture blend on real terminator, night-side city
+  lights (sunset ramp ONLY — deliberately not lit under the eclipse shadow; the umbra
+  instead gets a deep-twilight terrain glow + Natural Earth border/coastline lines
+  fading in with `shade`, both gated on dayness), fresnel rim, coverage darkening, and the
   optional "Lines" overlay: iso-lines at 25/50/75% + totality boundary at **0.999**
   (not 1.0 — the model has a few-km systematic under-coverage; 0.999 tracks the true edge
   best), faded past the terminator (`smoothstep` on ndl).
@@ -103,6 +105,10 @@ Derived-time model: `simTime = baseSimMs + (performance.now() − basePerfMs)·s
   astronomy-engine quirks: `Next*Eclipse` takes the previous **peak time** (not the info
   object); annular eclipses DO get `latitude/longitude` despite the doc comment.
   Regenerate when upgrading astronomy-engine (version-pin matters).
+- [scripts/generate-borders.mjs](scripts/generate-borders.mjs) →
+  `public/textures/borders_8k.png`: Natural Earth 50m borders + coastlines rendered to
+  an equirect line mask by system Chrome's headless screenshot (no npm deps). Used by
+  the Earth shader inside the eclipse shadow.
 - [scripts/generate-cities.mjs](scripts/generate-cities.mjs) → `src/data/cities.json`:
   GeoNames cities ≥50k pop, `[asciiName, lat, lon, pop]` sorted by pop desc. ASCII names
   on purpose — the bundled label font (`public/fonts/Roboto-Regular.woff`, latin subset,

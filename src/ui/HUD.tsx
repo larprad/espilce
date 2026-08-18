@@ -212,7 +212,11 @@ function AboutPanel() {
         <a href="https://www.geonames.org/" target="_blank" rel="noreferrer">
           GeoNames
         </a>{" "}
-        (CC BY 4.0).
+        (CC BY 4.0). Borders by{" "}
+        <a href="https://www.naturalearthdata.com/" target="_blank" rel="noreferrer">
+          Natural Earth
+        </a>
+        .
       </p>
       <p className="about__hint">
         Space — play/pause · Shift+←/→ — previous/next eclipse · drag to orbit, scroll to zoom
