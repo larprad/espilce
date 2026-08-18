@@ -212,6 +212,8 @@
 
 /* ---------- Status badge ---------- */
 
+/* The badge wears the play button's corona: same warm border + two-layer
+   glow, so the two interactive hubs share one visual language. */
 .status {
   display: flex;
   align-items: center;
@@ -219,11 +221,92 @@
   padding: 14px 24px;
   min-width: 320px;
   text-align: left;
-  transition: border-color var(--transition-fast);
+  border-color: rgba(255, 179, 71, 0.28);
+  box-shadow:
+    0 0 8px 1px rgba(255, 179, 71, 0.18),
+    0 0 18px 3px rgba(255, 179, 71, 0.06);
+  transition: border-color var(--transition-fast), box-shadow var(--transition-fast);
 }
 
 .status:hover {
-  border-color: var(--border-strong);
+  border-color: rgba(255, 179, 71, 0.5);
+  box-shadow:
+    0 0 10px 2px rgba(255, 179, 71, 0.28),
+    0 0 22px 4px rgba(255, 179, 71, 0.08);
+}
+
+/* One "look here" swell of the corona after load — the badge is the
+   navigation hub. The delay waits out the loading-screen fade; runs once
+   per page load. */
+.status--pulse {
+  animation: badge-pulse 1.2s ease-in-out 2s 1;
+}
+
+@keyframes badge-pulse {
+  0%,
+  100% {
+    border-color: rgba(255, 179, 71, 0.28);
+    box-shadow:
+      0 0 8px 1px rgba(255, 179, 71, 0.18),
+      0 0 18px 3px rgba(255, 179, 71, 0.06);
+  }
+  50% {
+    border-color: rgba(255, 179, 71, 0.6);
+    box-shadow:
+      0 0 16px 3px rgba(255, 179, 71, 0.35),
+      0 0 30px 6px rgba(255, 179, 71, 0.12);
+  }
+}
+
+/* First-visit coach mark under the badge (anchor: .hud__top-center). */
+.picker-hint {
+  position: absolute;
+  top: calc(100% + 12px);
+  left: 50%;
+  transform: translateX(-50%);
+  padding: 8px 14px;
+  font-size: var(--fs-xs);
+  color: var(--text-1);
+  background: var(--panel);
+  backdrop-filter: var(--blur-panel);
+  -webkit-backdrop-filter: var(--blur-panel);
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-m);
+  white-space: nowrap;
+  pointer-events: none;
+  animation: hint-in 0.35s ease 0.5s both;
+  transition: opacity 0.3s ease, transform 0.3s ease;
+}
+
+.picker-hint::before {
+  content: "";
+  position: absolute;
+  top: -5px;
+  left: 50%;
+  width: 9px;
+  height: 9px;
+  transform: translateX(-50%) rotate(45deg);
+  background: inherit;
+  border-left: 1px solid var(--border-strong);
+  border-top: 1px solid var(--border-strong);
+}
+
+/* animation: none drops the fill-mode lock so the transition can take over. */
+.picker-hint.is-hiding {
+  animation: none;
+  opacity: 0;
+  transform: translateX(-50%) translateY(4px);
+}
+
+@keyframes hint-in {
+  from {
+    opacity: 0;
+    transform: translateX(-50%) translateY(-4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+  }
 }
 
 .status__body {

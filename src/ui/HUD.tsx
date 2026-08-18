@@ -4,6 +4,7 @@ import { type CameraPreset, useEclipseStore } from "../state/store";
 import { useSimTime } from "../state/useSimTime";
 import { CatalogPanel } from "./CatalogPanel";
 import { EclipseStatus } from "./EclipseStatus";
+import { PickerHint } from "./PickerHint";
 import { TimeControls } from "./TimeControls";
 
 const PRESETS: Array<[CameraPreset, string, string]> = [
@@ -125,6 +126,7 @@ export function HUD() {
             <ChevronRight />
           </button>
         </div>
+        <PickerHint />
       </div>
 
       <div className="hud__bottom-stack">
