@@ -135,8 +135,9 @@ eclipses in local time; the datetime-local input is fed wall-clock digits per mo
 ([format.ts](src/ui/format.ts)).
 
 Share links ([share.ts](src/state/share.ts)): the Share button copies the current view as
-a URL **hash** — `#e=<id>&t=<simMs>&v=<preset>&c=px,py,pz,tx,ty,tz&o=[l][c]` (hash so it
-never hits the Pages server, invisible to OG scrapers, orthogonal to `?nofx`). Parsed
+a URL **hash** — one opaque token `#s=<base64url of "id|tMs|preset|px,py,pz,tx,ty,tz|[l][c]">`
+(hash so it never hits the Pages server, invisible to OG scrapers, orthogonal to `?nofx`;
+the older readable `#e=…&t=…&v=…&c=…&o=…` form still parses). Parsed
 ONCE at boot into `initialShare`; the store initializer takes id/t/preset/overlays, the
 driver's mount aim applies the exact camera (skipping the preset aim). Every field is
 validated independently — a corrupt param falls back to that field's boot default. The
